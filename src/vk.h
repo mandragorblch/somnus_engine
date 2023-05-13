@@ -79,9 +79,13 @@ class vk
         };
 
         struct SSBO {
-            glm::vec3 coeff;
-            glm::vec3 pow;
-            int radius;
+            alignas(8) glm::vec3 coeff;
+            alignas(8) glm::vec3 pow;
+            alignas(4) glm::int32 radius;
+        };
+
+        struct uniform_shader_storage_info {
+            alignas(4) glm::int32 units;
         };
 
         bool framebufferResized = false;
@@ -97,6 +101,10 @@ class vk
         float cameraSpeed = 0.1f;
 
         SSBO my_ssbo;
+
+        //uint32_t imageIndex;
+
+        //VkResult result;
 
     private:
 
@@ -159,6 +167,8 @@ class vk
         std::vector<VkDeviceMemory> object_info_buffers_memory;
         std::vector <VkBuffer> shader_storage_buffers;
         std::vector <VkDeviceMemory> shader_storage_buffers_memory;
+        std::vector <VkBuffer> shader_storage_buffers_info;
+        std::vector <VkDeviceMemory> shader_storage_buffers_info_memory;
 
         VkDescriptorPool descriptorPool;
         VkDescriptorPool computeDescriptorPool;
@@ -256,8 +266,6 @@ class vk
 
         void createUniformBuffers();
 
-        void createComputeBuffers();
-
         void createDescriptorPool();
 
         void createComputeDescriptorPool();
@@ -277,6 +285,8 @@ class vk
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
         void createCommandBuffers();
+
+        void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
         void createComputeCommandBuffers();
 
