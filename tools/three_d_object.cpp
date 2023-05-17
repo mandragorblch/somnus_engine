@@ -7,7 +7,7 @@ three_d_object::three_d_object(std::string model_path, std::string texture_path,
     std::vector<tinyobj::material_t> materials;
     std::string warn, err;
 
-    info.textureIndex = texIndex;
+    info.textureindex = 0;
     info.pos = { 0, 0, 0 };
     info.rotation = { 0, 0 };
     info.shininess = 0;

@@ -13,6 +13,7 @@
 #include "GLFW/window_class.h"
 #include "misc/vk_misc.h"
 #include "tools/three_d_object.h"
+#include "tools/two_d_object.h"
 
 #include <iostream>
 #include <fstream>
@@ -40,7 +41,9 @@ class vk
         vk();
         ~vk();
 
-        std::vector<three_d_object*> objects;
+        std::vector<three_d_object*> threeDObjects;
+
+        std::vector<two_d_object*> twoDObjects;
 
         void run();
 
@@ -88,7 +91,12 @@ class vk
             alignas(4) glm::int32 units;
         };
 
+        struct ui_uniform {
+            alignas(16) glm::mat4 ortho;
+        };
+
         bool framebufferResized = false;
+        bool calc_is_performing = false;
 
         class window_class* mWindow;
         class GLFWwindow* window;
@@ -102,9 +110,12 @@ class vk
 
         SSBO my_ssbo;
 
+
+
         //uint32_t imageIndex;
 
         //VkResult result;
+    void recreateSwapChain();
 
     private:
 
@@ -132,9 +143,13 @@ class vk
         std::vector<VkFramebuffer> swapChainFramebuffers;
 
         VkRenderPass renderPass;
-        VkDescriptorSetLayout descriptorSetLayout;
-        VkPipelineLayout pipelineLayout;
-        VkPipeline graphicsPipeline;
+        VkDescriptorSetLayout threeDDescriptorSetLayout;
+        VkPipelineLayout threeDPipelineLayout;
+        VkPipeline threeDGraphicsPipeline;
+
+        VkDescriptorSetLayout twoDDescriptorSetLayout;
+        VkPipelineLayout twoDPipelineLayout;
+        VkPipeline twoDGraphicsPipeline;
 
         VkDescriptorSetLayout computeDescriptorSetLayout;
         VkPipelineLayout computePipelineLayout;
@@ -152,30 +167,39 @@ class vk
 
         std::vector<uint32_t> mipLevels;
         std::vector<VkImage> textureImage;
-        VkDeviceMemory textureImageMemory;
+        std::vector<VkDeviceMemory> textureImagesMemory;
         std::vector<VkImageView> textureImageView;
         std::vector<VkSampler> textureSampler;
 
-        std::vector<VkBuffer> vectorVertexBuffers;
-        VkDeviceMemory vertexBufferMemory;
-        std::vector<VkBuffer> vectorIndexBuffers;
-        VkDeviceMemory indexBufferMemory;
+        std::vector<VkBuffer> vectorThreeDVertexBuffers;
+        std::vector<VkDeviceMemory> vertexThreeDBuffersMemory;
+        std::vector<VkBuffer> vectorThreeDIndexBuffers;
+        std::vector<VkDeviceMemory> indexThreeDBuffersMemory;
+
+        std::vector<VkBuffer> vectorTwoDVertexBuffers;
+        std::vector<VkDeviceMemory> vertexTwoDBuffersMemory;
+        std::vector<VkBuffer> vectorTwoDIndexBuffers;
+        std::vector<VkDeviceMemory> indexTwoDBuffersMemory;
 
         std::vector <VkBuffer> MVP_buffers;
         std::vector <VkDeviceMemory> MVP_buffers_memory;
         std::vector<VkBuffer> object_info_buffers;
         std::vector<VkDeviceMemory> object_info_buffers_memory;
+        std::vector<VkBuffer> ui_uniform_buffers;
+        std::vector<VkDeviceMemory> ui_uniform_buffers_memory;
         std::vector <VkBuffer> shader_storage_buffers;
         std::vector <VkDeviceMemory> shader_storage_buffers_memory;
         std::vector <VkBuffer> shader_storage_buffers_info;
         std::vector <VkDeviceMemory> shader_storage_buffers_info_memory;
 
-        VkDescriptorPool descriptorPool;
+        VkDescriptorPool threeDDescriptorPool;
+        std::vector<VkDescriptorSet> threeDDescriptorSets;
+        VkDescriptorPool twoDDescriptorPool;
+        std::vector<VkDescriptorSet> twoDDescriptorSets;
         VkDescriptorPool computeDescriptorPool;
-        std::vector<VkDescriptorSet> descriptorSets;
         std::vector<VkDescriptorSet> computeDescriptorSets;
 
-        std::vector<VkCommandBuffer> commandBuffers;
+        std::vector<VkCommandBuffer> graphicsCommandBuffers;
         std::vector<VkCommandBuffer> computeCommandBuffers;
 
         std::vector<VkSemaphore> imageAvailableSemaphores;
@@ -196,8 +220,6 @@ class vk
 
         void cleanupSwapChain();
 
-        void recreateSwapChain();
-
         void createInstance();
 
         void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
@@ -216,11 +238,15 @@ class vk
 
         void createRenderPass();
 
-        void createDescriptorSetLayout();
+        void create3DDescriptorSetLayout();
+
+        void create2DDescriptorSetLayout();
 
         void createComputeDescriptorSetLayout();
 
-        void createGraphicsPipeline();
+        void create3DGraphicsPipeline();
+
+        void create2DGraphicsPipeline();
 
         void createComputePipeline();
 
@@ -258,19 +284,27 @@ class vk
 
         void createObjectBuffers();
 
-        void createVertexBuffer(std::vector<Vertex> vertices);
+        void createThreeDVertexBuffer(std::vector<Vertex> vertices);
 
-        void createIndexBuffer(std::vector<uint32_t> indices);
+        void createTwoDVertexBuffer(std::vector<ui_Vertex> vertices);
+
+        void createThreeDIndexBuffer(std::vector<uint32_t> indices);
+
+        void createTwoDIndexBuffer(std::vector<uint32_t> indices);
 
         void createShaderStorageBuffers();
 
         void createUniformBuffers();
 
-        void createDescriptorPool();
+        void createThreeDDescriptorPool();
+
+        void createTwoDDescriptorPool();
 
         void createComputeDescriptorPool();
 
-        void createDescriptorSets();
+        void createThreeDDescriptorSets();
+
+        void createTwoDDescriptorSets();
 
         void createComputeDescriptorSets();
 
@@ -284,9 +318,9 @@ class vk
 
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-        void createCommandBuffers();
+        void createGraphicsCommandBuffers();
 
-        void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+        void recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
         void createComputeCommandBuffers();
 

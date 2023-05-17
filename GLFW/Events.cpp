@@ -26,6 +26,8 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
 	}
 	Events::x = xpos;
 	Events::y = ypos;
+
+	glfwGetCursorPos(window, &Events::x, &Events::y);
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mode) {
@@ -51,10 +53,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 }
 
 //void window_size_callback(GLFWwindow* window, int width, int height) {
-//	glViewport(0, 0, width, height);
-//	Window::width = width;
-//	Window::height = height;
-//	//myStorage->myEngine->aspectIsChanged = true;
+//	this_p_vk->recreateSwapChain();
+//
 //}
 
 int Events::eventInitialize(class vk* p_vk){
@@ -69,7 +69,7 @@ int Events::eventInitialize(class vk* p_vk){
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetCursorPosCallback(window, cursor_position_callback);
-	//glfwSetWindowSizeCallback(window, window_size_callback);
+	//glfwSetWindowSizeCallback(window, window_size_callback); not needed bc vulkan know ab framebuffersize
 	return 0;
 }
 

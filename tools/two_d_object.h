@@ -10,15 +10,14 @@
 #include <stdexcept>
 #include <vector>
 
-class three_d_object
+class two_d_object
 {
 public:
-	std::vector<Vertex> vertices;
+	std::vector<ui_Vertex> vertices;
 	std::vector<uint32_t> indices;
 	std::string texture_path;
 	unsigned int texIndex;
-	threeDObjectInfo info;
+	twoDObjectInfo info;
 
-	three_d_object(std::string object_path, std::string texture_path, unsigned int texIndex);
+	two_d_object(std::string texture_path, unsigned int texIndex);
 };
-
