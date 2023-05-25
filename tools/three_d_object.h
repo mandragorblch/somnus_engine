@@ -19,6 +19,6 @@ public:
 	unsigned int texIndex;
 	threeDObjectInfo info;
 
-	three_d_object(std::string object_path, std::string texture_path, unsigned int texIndex);
+	three_d_object(std::string object_path, std::string texture_path);
 };
 

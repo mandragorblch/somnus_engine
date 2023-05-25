@@ -14,6 +14,7 @@
 #include "misc/vk_misc.h"
 #include "tools/three_d_object.h"
 #include "tools/two_d_object.h"
+#include "tools/button.h"
 
 #include <iostream>
 #include <fstream>
@@ -110,12 +111,19 @@ class vk
 
         SSBO my_ssbo;
 
+        unsigned long int frames = 0;
+        unsigned long int time_from_last_frame = 0;
+        unsigned long int second_timer = 0;
 
+        unsigned int texture_counter = 0;
+
+        std::vector<class button*> buttons;
 
         //uint32_t imageIndex;
 
         //VkResult result;
-    void recreateSwapChain();
+        void initWindow();
+        void recreateSwapChain();
 
     private:
 
@@ -209,8 +217,6 @@ class vk
         std::vector<VkFence> imagesInFlight;
         std::vector<VkFence> computeInFlightFences;
         size_t currentFrame = 0;
-
-        void initWindow();
 
         static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 

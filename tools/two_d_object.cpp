@@ -1,10 +1,9 @@
 #include "two_d_object.h"
 
-two_d_object::two_d_object(std::string texture_path, unsigned int texIndex) : texture_path(texture_path), texIndex(texIndex)
+two_d_object::two_d_object(std::string texture_path) : texture_path(texture_path)
 {
     info.pos = { 0, 0 };
-    info.rotation = { 0, 0 };
-    info.textureindex = 0;
+    info.rotation = { 0, 0, 0 };
 
     ui_Vertex topLeftSquare;
 
@@ -38,4 +37,8 @@ two_d_object::two_d_object(std::string texture_path, unsigned int texIndex) : te
         2, 1, 0,
         0, 3, 2
     };
+}
+
+two_d_object::two_d_object()
+{
 }

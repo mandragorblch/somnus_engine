@@ -19,5 +19,6 @@ public:
 	unsigned int texIndex;
 	twoDObjectInfo info;
 
-	two_d_object(std::string texture_path, unsigned int texIndex);
+	two_d_object(std::string texture_path);
+	two_d_object();
 };

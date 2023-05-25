@@ -80,16 +80,14 @@ struct ui_Vertex {
 };
 
 struct threeDObjectInfo {
-    unsigned int textureindex;
-    unsigned int shininess;
-    glm::vec3 pos;
-    glm::vec2 rotation;
+    alignas(4) unsigned int shininess;
+    alignas(16) glm::vec3 pos;
+    alignas(16) glm::vec3 rotation;
 };
 
 struct twoDObjectInfo {
-    alignas(4) unsigned int textureindex;
     alignas(8) glm::vec2 pos;
-    alignas(8) glm::vec2 rotation;
+    alignas(16) glm::vec3 rotation;
 };
 
 namespace std {

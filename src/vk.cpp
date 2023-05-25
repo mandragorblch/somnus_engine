@@ -15,6 +15,8 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include <time.h>
+
 
 vk::vk()
 {
@@ -24,6 +26,8 @@ vk::vk()
 vk::~vk()
 {
     delete mWindow;
+
+    delete p_camera;
 
     cleanupSwapChain();
     for (int i = 0; i < threeDObjects.size(); i++) {
@@ -92,9 +96,8 @@ vk::~vk()
 
 void vk::run()
 {
-    initWindow();
-    Events::eventInitialize(p_vk);
     initVulkan();
+    Events::eventInitialize(p_vk);
     mainLoop();
 }
 
@@ -167,6 +170,21 @@ void vk::initVulkan()
 void vk::mainLoop()
 {
     while (!glfwWindowShouldClose(window)) {
+        //std::cout << "\n\n" << mWindow->WIDTH << "\n\n";
+        //std::cout <<  << "\n\n\n";
+        if (clock() - second_timer < 1000) {
+            frames++;
+        }
+        else {
+            second_timer = clock();
+            std::cout << "\n" << frames;
+            frames = 0;
+        }
+
+        if (Events::x > buttons[0]->pixel_pos_bottom_left[0] && Events::x < buttons[0]->pixel_pos_top_right[0] && Events::y > buttons[0]->pixel_pos_bottom_left[1] && Events::y < buttons[0]->pixel_pos_top_right[1]) {
+            std::cout << "\ncursor in\n";
+        }
+
         //calc();
         drawFrame();
 
@@ -257,6 +275,7 @@ void vk::recreateSwapChain()
     createRenderPass();
     createGraphicsCommandBuffers();
     create3DGraphicsPipeline();
+    create2DGraphicsPipeline();
     createColorResources();
     createDepthResources();
     createFramebuffers();
@@ -1375,18 +1394,25 @@ void vk::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint3
 void vk::createObjectBuffers()
 {
     for (class three_d_object* object : threeDObjects) {
+        object->texIndex = texture_counter;
         createThreeDVertexBuffer(object->vertices);
         createThreeDIndexBuffer(object->indices);
         createTextureImage(object->texture_path);
-        createTextureImageView(object->texIndex);
+        createTextureImageView(texture_counter);
         createTextureSampler();
+        texture_counter++;
     }
     for (class two_d_object* object : twoDObjects) {
+        object->texIndex = texture_counter;
         createTwoDVertexBuffer(object->vertices);
         createTwoDIndexBuffer(object->indices);
         createTextureImage(object->texture_path);
-        createTextureImageView(object->texIndex + 1 + threeDObjects.back()->texIndex);
+        createTextureImageView(texture_counter);
         createTextureSampler();
+        texture_counter++;
+    }
+    for (button* m_button : buttons) {
+        m_button->calculate_pixel_pos();
     }
 }
 
@@ -1695,8 +1721,8 @@ void vk::createTwoDDescriptorSets()
 
             VkDescriptorImageInfo imageInfo{};
             imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            imageInfo.imageView = textureImageView[twoDObjects[object_index]->texIndex + threeDObjects.back()->texIndex + 1];
-            imageInfo.sampler = textureSampler[twoDObjects[object_index]->texIndex + threeDObjects.back()->texIndex + 1];
+            imageInfo.imageView = textureImageView[twoDObjects[object_index]->texIndex];
+            imageInfo.sampler = textureSampler[twoDObjects[object_index]->texIndex];
 
             std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 
@@ -2039,6 +2065,7 @@ void vk::updateUniformBuffer(uint32_t currentImage)
     vkUnmapMemory(device, shader_storage_buffers_info_memory[currentImage]);
 
     for (int objectIndex = 0; objectIndex < threeDObjects.size(); objectIndex++) {
+        threeDObjects[objectIndex]->info.rotation += glm::vec3(0.1, 0.1, 0.1);
         vkMapMemory(device, object_info_buffers_memory[currentImage + objectIndex * swapChainImages.size()], 0, sizeof(threeDObjects[objectIndex]->info), 0, &data);
         memcpy(data, &threeDObjects[objectIndex]->info, sizeof(threeDObjects[objectIndex]->info));
         vkUnmapMemory(device, object_info_buffers_memory[currentImage + objectIndex * swapChainImages.size()]);
@@ -2077,7 +2104,6 @@ void vk::calc()
 
 void vk::drawFrame()
 {    
-    std::cout << Events::x << "\n\n\n";
     vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
     uint32_t imageIndex;
@@ -2151,6 +2177,10 @@ void vk::drawFrame()
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
         framebufferResized = false;
+        glfwGetFramebufferSize(window, &mWindow->WIDTH, &mWindow->HEIGHT);  
+        for (button* m_button : buttons) {
+            m_button->calculate_pixel_pos();
+        }
         recreateSwapChain();
     }
     else if (result != VK_SUCCESS) {
@@ -2190,11 +2220,11 @@ VkSurfaceFormatKHR vk::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormat
 
 VkPresentModeKHR vk::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
 {
-    for (const auto& availablePresentMode : availablePresentModes) {
-        if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
-            return availablePresentMode;
-        }
-    }
+    //for (const auto& availablePresentMode : availablePresentModes) {
+    //    if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+    //        return availablePresentMode;
+    //    }
+    //}
 
     return VK_PRESENT_MODE_FIFO_KHR;
 }
