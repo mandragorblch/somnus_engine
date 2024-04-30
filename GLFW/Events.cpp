@@ -5,10 +5,10 @@
 bool* Events::_keys;
 uint* Events::_frames;
 uint Events::_current = 0;
-double Events::deltaX = 0.0f;
-double Events::deltaY = 0.0f;
-double Events::x = 0.0f;
-double Events::y = 0.0f;
+double Events::deltaX = 0.0;
+double Events::deltaY = 0.0;
+double Events::x = 0.0;
+double Events::y = 0.0;
 bool Events::_cursor_locked = false;
 bool Events::_cursor_started = false;
 
@@ -74,25 +74,19 @@ int Events::eventInitialize(class vk* p_vk){
 }
 
 bool Events::pressed(int keycode) {
-	if (keycode < 0 || keycode >= _MOUSE_BUTTONS)
-		return false;
 	return _keys[keycode];
 }
 
 bool Events::jpressed(int keycode) {
-	if (keycode < 0 || keycode >= _MOUSE_BUTTONS)
-		return false;
 	return _keys[keycode] && _frames[keycode] == _current;
 }
 
 bool Events::clicked(int button) {
-	int index = _MOUSE_BUTTONS + button;
-	return _keys[index];
+	return _keys[_MOUSE_BUTTONS + button];
 }
 
 bool Events::jclicked(int button) {
-	int index = _MOUSE_BUTTONS + button;
-	return _keys[index] && _frames[index] == _current;
+	return _keys[_MOUSE_BUTTONS + button] && _frames[_MOUSE_BUTTONS + button] == _current;
 }
 
 void Events::toggleCursor()

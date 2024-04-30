@@ -1,0 +1,431 @@
+//#version 460
+//
+//#extension GL_ARB_separate_shader_objects : enable
+//
+//vec4 multiply_quats(const vec4 first, const vec4 second) {
+//	return vec4(first.w * second.xyz + second.w * first.xyz + vec3(first.y * second.z - first.z * second.y, first.z * second.x - first.x * second.z, first.x * second.y - first.y * second.x), (first.w * second.w - (first.x * second.x + first.y * second.y + first.z * second.z)));
+//}
+//
+//vec4 quat_from_angles_vec4(const vec3 angles) {
+//	vec4 local[3];
+//	local[2].x = 0;
+//	local[2].y = 0;
+//	local[2].z = sin(angles.z / 2);
+//	local[2].w = cos(angles.z / 2);
+//
+//	local[1].x = 0;
+//	local[1].y = sin(angles.y / 2);
+//	local[1].z = 0;
+//	local[1].w = cos(angles.y / 2);
+//
+//	local[0].x = sin(angles.x / 2);
+//	local[0].y = 0;
+//	local[0].z = 0;
+//	local[0].w = cos(angles.x / 2);
+//
+//	return multiply_quats(multiply_quats(local[2], local[1]), local[0]);
+//}
+//
+//vec3 rotation_by_quat(const vec3 pos, const vec4 quat) {
+//	const vec4 res = multiply_quats(multiply_quats(quat, vec4(pos, 0.f)), vec4(-quat.x, -quat.y, -quat.z, quat.w));
+//	return vec3(res.x, res.y, res.z);
+//}
+//
+//vec4 reverse_quat(vec4 quat) {
+//    return(vec4(-quat.xyz, quat.w));
+//}
+//
+//#define MAX_HITBOXES 16
+//#define MAX_INTERSECTIONS 128
+//float deltaTime_144Hz = 1./144.;
+//float deltaTime_60Hz = 1./60.;
+//
+//struct cubeHitbox {
+//    vec4 rot;
+//    vec4 pos;
+//    vec4 side_length;//4rd is an index of an object
+//    vec4 intersection_posTime;
+//    vec4 velocity_time;
+//    float verticeIndeces[8];
+//};
+//
+//struct rectangularParallelepipedHitbox {
+//    vec3 top;
+//    vec3 bottom;
+//
+//    vec3 rot;
+//    vec3 pos;
+//    uint index;
+//};
+//
+//struct sphereHitbox {
+//    uint radius;
+//
+//    vec3 rot;
+//    vec3 pos;
+//    uint index;
+//};
+//
+//struct cylinderHitbox {
+//    uint height;
+//    uint radius;
+//
+//    vec3 rot;
+//    vec3 pos;
+//    uint index;
+//};
+//
+//struct intersection{
+//    uint index;
+//    vec4 pos_time[MAX_INTERSECTIONS];
+//    float intersectionTime;
+//};
+//// ----------------------------------------------------------------------------------------------------------------------------------------
+//struct physicalObjectInfo {
+//    vec4 pos_index;
+//    vec4 quat_rot;
+//    vec4 velocity_mass;
+//    vec4 angularVelocity_momentOfInertia;
+//    vec4 force;
+//};
+//
+//struct hitboxVertice {
+//    vec4 pos_index; //WHERE VEC3 - XYZ, 4RD - INDEX OF HITBOX
+//    vec4 velocity_intersectionTime;
+//    bool goingInside;
+//};
+//
+////struct object{
+////   cubeHitbox cubeHitboxes[MAX_HITBOXES];
+////   rectangularParallelepipedHitbox rectangularParallelepipedHitboxex[MAX_HITBOXES];
+////   sphereHitbox sphereHitboxes[MAX_HITBOXES];
+////   cylinderHitbox cylinderHitboxes[MAX_HITBOXES];
+////};
+//
+//layout(std430, binding = 0) buffer physicalObjectInfoIn {
+//    physicalObjectInfo physicalObjectsInfo[ ];
+//};
+//
+//layout(std430, binding = 1) buffer cube_hitboxesBuffer_IN {
+//    cubeHitbox cubeHitboxes[ ];
+//}; //WILL BE ITERATED BY INDEX OF GLOBAL INVOCATIAN X
+//
+//layout(std430, binding = 2) buffer verticesBuffer_IN {
+//   hitboxVertice hitbox_vertice[ ];
+//};
+//
+//layout(std430, binding = 3) buffer intersectionsCountBuffer_OUT {
+//    ivec4 hitboxes_amount;
+//};
+//
+//layout(std430, binding = 4) buffer intersectionsBuffer_OUT { // MUST BE INITIALIZED BY HOST. SIZE - AMOUNT OF HITBOXES
+//   intersection intersections[ ];
+//};
+//
+//layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+//
+//vec3 findIntercestionPoint(float t, float x1, float x2, float y1, float y2, float z1, float z2){
+//    return vec3(t * (x2 - x1) + x1, t * (y2 - y1) + y1, t * (z2 - z1) + z1);
+//}
+//
+//float length_of_vector(vec3 vector){
+//    return sqrt(vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[2]);
+//}
+//
+//bool belonging_check(vec3 intersection_point, float x_top, float y_top, float z_top, float x_bottom, float y_bottom, float z_bottom){
+//    return (((intersection_point[0] <= x_top && intersection_point[0] >= x_bottom)) && ((intersection_point[1] <= y_top && intersection_point[1] >= y_bottom)) && ((intersection_point[2] <= z_top && intersection_point[2] >= z_bottom)));
+//};
+//
+//bool check_direction(vec3 current_pos, vec3 lastframe_pos, vec3 intersection_point){
+//    bool by_direction = false;
+//    if(lastframe_pos[0] > current_pos[0]){
+//        if(lastframe_pos[0] > intersection_point[0]){
+//            by_direction = true;
+//        } else {
+//            return false;
+//        }
+//    } else {
+//        if(lastframe_pos[0] <= intersection_point[0]){
+//            by_direction = true;
+//        } else {
+//            return false;
+//        }
+//    }
+//    if(lastframe_pos[1] > current_pos[1]){
+//        if(lastframe_pos[1] > intersection_point[1]){
+//            by_direction = true;
+//        } else {
+//            return false;
+//        }
+//    } else {
+//        if(lastframe_pos[1] <= intersection_point[1]){
+//            by_direction = true;
+//        } else {
+//            return false;
+//        }
+//    }
+//    if(lastframe_pos[2] > current_pos[2]){
+//        if(lastframe_pos[2] > intersection_point[2]){
+//            by_direction = true;
+//        } else {
+//            return false;
+//        }
+//    } else {
+//        if(lastframe_pos[2] <= intersection_point[2]){
+//            by_direction = true;
+//        } else {
+//            return false;
+//        }
+//    }
+//    return by_direction;
+//};
+//
+//void main() 
+//{
+//    uint index = gl_GlobalInvocationID.x;
+//
+//    hitbox_vertice[index].velocity_intersectionTime = vec4(0, 0, 0, 1.);
+//
+//    physicalObjectInfo current_physicalObject = physicalObjectsInfo[uint(cubeHitboxes[uint(hitbox_vertice[index].pos_index[3])].side_length[3])];
+////    mat3 rotation_mat = rotate_x(physicalObjectsInfo[index].rot[0]) * rotate_y(physicalObjectsInfo[index].rot[1]) * rotate_z(physicalObjectsInfo[index].rot[2]);
+////    hitbox_vertice[index].pos_index.xyz = rotate_x(current_physicalObject.rot[0]) * rotate_y(current_physicalObject.rot[1]) * rotate_z(current_physicalObject.rot[2]) * hitbox_vertice[index].pos_index.xyz;
+//    
+//    float current_deltaTime = deltaTime_60Hz;
+//
+//    if(vec3(physicalObjectsInfo[uint(uint(cubeHitboxes[uint(hitbox_vertice[index].pos_index[3])].side_length[3]))].velocity_mass) != vec3(0)) {
+//        for(int i = 0; i < hitboxes_amount[0]; i++) {
+//            if (i == uint(hitbox_vertice[index].pos_index[3])) {
+//                continue;
+//            }
+//            physicalObjectInfo objectWith = physicalObjectsInfo[uint(cubeHitboxes[i].side_length[3])];
+//            vec4 current_vertice = hitbox_vertice[index].pos_index;
+//            vec4 lastframe_vertice = hitbox_vertice[index].pos_index;
+//            current_vertice.xyz = rotation_by_quat(current_vertice.xyz, current_physicalObject.quat_rot);
+//            vec3 relative_pos = current_physicalObject.pos_index.xyz - objectWith.pos_index.xyz;
+//            lastframe_vertice.xyz = rotation_by_quat(lastframe_vertice.xyz, current_physicalObject.quat_rot_lastframe);
+//            lastframe_vertice.xyz = rotation_by_quat(lastframe_vertice.xyz + relative_pos, reverse_quat(objectWith.quat_rot_lastframe)) - relative_pos;
+//            relative_pos += current_physicalObject.velocity_mass.xyz * current_deltaTime - objectWith.velocity_mass.xyz * current_deltaTime;
+//            current_vertice.xyz = rotation_by_quat(current_vertice.xyz + relative_pos, reverse_quat(objectWith.quat_rot)) - relative_pos;
+//            current_vertice.xyz += physicalObjectsInfo[uint(cubeHitboxes[uint(current_vertice[3])].side_length[3])].pos_index.xyz + physicalObjectsInfo[uint(cubeHitboxes[uint(current_vertice[3])].side_length[3])].velocity_mass.xyz * current_deltaTime;
+//            lastframe_vertice.xyz += physicalObjectsInfo[uint(cubeHitboxes[uint(current_vertice[3])].side_length[3])].pos_index.xyz;
+//
+//            vec3 intersection_point;
+//
+//            vec3 velocity_hitbox = rotation_by_quat(vec3(physicalObjectsInfo[uint(cubeHitboxes[i].side_length[3])].velocity_mass), objectWith.quat_rot);
+//            vec3 velocity_current_vertice = (current_vertice.xyz - lastframe_vertice.xyz) / current_deltaTime;
+//
+//            vec3 cube_hitbox_abs_pos = vec3(physicalObjectsInfo[uint(cubeHitboxes[i].side_length[3])].pos_index) + vec3(cubeHitboxes[i].pos);
+//            vec3 top = cube_hitbox_abs_pos + vec3(cubeHitboxes[i].side_length[0] / 2.);
+//            vec3 bottom = cube_hitbox_abs_pos - vec3(cubeHitboxes[i].side_length[0] / 2.);
+//
+//            vec3 t_top = vec3(0);
+//            t_top.x = (top.x - lastframe_vertice.x) / (velocity_current_vertice.x - velocity_hitbox.x);
+//            t_top.y = (top.y - lastframe_vertice.y) / (velocity_current_vertice.y - velocity_hitbox.y);
+//            t_top.z = (top.z - lastframe_vertice.z) / (velocity_current_vertice.z - velocity_hitbox.z);
+//            vec3 t_bottom = vec3(0);
+//            t_bottom.x = (bottom.x - lastframe_vertice.x) / (velocity_current_vertice.x - velocity_hitbox.x);
+//            t_bottom.y = (bottom.y - lastframe_vertice.y) / (velocity_current_vertice.y - velocity_hitbox.y);
+//            t_bottom.z = (bottom.z - lastframe_vertice.z) / (velocity_current_vertice.z - velocity_hitbox.z);
+//            vec3 t_intersection_with_far = vec3(0);
+//            t_intersection_with_far.x = max(t_top.x, t_bottom.x);
+//            t_intersection_with_far.y = max(t_top.y, t_bottom.y);
+//            t_intersection_with_far.z = max(t_top.z, t_bottom.z);
+//            vec3 t_intersection_with_near = vec3(0);
+//            vec3 normal = vec3(0);
+//            vec3 normal_x = vec3(0);
+//            vec3 normal_y = vec3(0);
+//            vec3 normal_z = vec3(0);
+//            if (t_top.x < t_bottom.x) {
+//                t_intersection_with_near.x = t_top.x;
+//                normal_x = vec3(1, 0, 0);
+//            } else {
+//                t_intersection_with_near.x = t_bottom.x;
+//                normal_x = vec3(-1, 0, 0);
+//            }
+//            if (t_top.y < t_bottom.y) {
+//                t_intersection_with_near.y = t_top.y;
+//                normal_y = vec3(0, 1, 0);
+//            } else {
+//                t_intersection_with_near.y = t_bottom.y;
+//                normal_y = vec3(0, -1, 0);
+//            }
+//            if (t_top.z < t_bottom.z) {
+//                t_intersection_with_near.z = t_top.z;
+//                normal_z = vec3(0, 0, 1);
+//            } else {
+//                t_intersection_with_near.z = t_bottom.z;
+//                normal_z = vec3(0, 0, -1);
+//            }
+//
+//            float t = 1.;
+//            if((t_intersection_with_near.x >= t_intersection_with_near.y && t_intersection_with_near.x <= t_intersection_with_far.y) && (t_intersection_with_near.x >= t_intersection_with_near.z && t_intersection_with_near.x <= t_intersection_with_far.z)) {
+//                if (t > t_intersection_with_near.x) {
+//                    t = t_intersection_with_near.x;
+//                    normal = normal_x;
+//                }
+//            }
+//            if((t_intersection_with_near.y >= t_intersection_with_near.x && t_intersection_with_near.y <= t_intersection_with_far.x) && (t_intersection_with_near.y >= t_intersection_with_near.z && t_intersection_with_near.y <= t_intersection_with_far.z)) {
+//                if (t > t_intersection_with_near.y) {
+//                    t = t_intersection_with_near.y;
+//                    normal = normal_y;
+//                }
+//            }
+//            if((t_intersection_with_near.z >= t_intersection_with_near.y && t_intersection_with_near.z <= t_intersection_with_far.y) && (t_intersection_with_near.z >= t_intersection_with_near.x && t_intersection_with_near.z <= t_intersection_with_far.x)) {
+//                if (t > t_intersection_with_near.z) {
+//                    t = t_intersection_with_near.z;
+//                    normal = normal_z;
+//                }
+//            }
+//
+//            if ((t <= current_deltaTime) && (t >= -0.00)) {
+//                if (hitbox_vertice[index].velocity_intersectionTime[3] > t) {
+//                    vec3 pos_after_rotation = rotation_by_quat(hitbox_vertice[index].pos_index.xyz, physicalObjectsInfo[uint(cubeHitboxes[uint(current_vertice[3])].side_length[3])].quat_rot);
+//                    vec3 lastframe_pos_after_rotation = rotation_by_quat(hitbox_vertice[index].pos_index.xyz, physicalObjectsInfo[uint(cubeHitboxes[uint(current_vertice[3])].side_length[3])].quat_rot_lastframe);
+//                    vec3 true_current_pos = pos_after_rotation + physicalObjectsInfo[uint(cubeHitboxes[uint(current_vertice[3])].side_length[3])].velocity_mass.xyz * current_deltaTime;
+//                    vec3 true_lastframe_pos = lastframe_pos_after_rotation;
+//                    vec3 true_velocity = (true_current_pos - true_lastframe_pos) / current_deltaTime;
+//                    hitbox_vertice[index].velocity_intersectionTime = vec4(true_velocity, t);
+//
+//                    vec3 rotation_velocity = (pos_after_rotation - lastframe_pos_after_rotation) / current_deltaTime;
+//                    hitbox_vertice[index].goingInside = (dot(rotation_velocity, rotation_by_quat(normal, objectWith.quat_rot_lastframe)) <= 0);
+//                }
+//            }
+////            intersections[uint(cubeHitboxes[i].side_length[3])].pos_time[uint(current_vertice[3])] = vec4(vec3(check), min(t, hitbox_vertice[index].velocity_intersectionTime[3]));
+//        }
+//    } 
+//}
+//
+////        for(int i = 0; i < hitboxes_amount[0]; i++) {
+////            if(current_vertice[3] == cubeHitboxes[i].side_length[3]){
+////                continue;
+////            }
+////            vec3 cube_hitbox_abs_pos = vec3(physicalObjectsInfo[uint(cubeHitboxes[i].side_length[3])].pos_index) + vec3(cubeHitboxes[i].pos);
+////            vec3 top = cube_hitbox_abs_pos + vec3(cubeHitboxes[i].side_length[0] / 2);
+////            vec3 bottom = cube_hitbox_abs_pos - vec3(cubeHitboxes[i].side_length[0] / 2);
+//////                if(intersections[uint(current_vertice[3])].index_intersected_by[uint(cubeHitboxes[i].side_length[3])][3] == 0) {
+//////                    intersections[uint(current_vertice[3])].index_intersected_by[uint(cubeHitboxes[i].side_length[3])] = vec4(vec3(current_vertice), cubeHitboxes[i].side_length[3]);
+//////                    intersections[uint(current_vertice[3])].index = uint(current_vertice[3]);
+//////                } else {
+//////                    continue;
+//////                }
+////
+////                vec3 intersection_point = vec3(0);
+////                vec3 x_top_intersection_point = vec3(0);
+////                vec3 y_top_intersection_point = vec3(0);
+////                vec3 z_top_intersection_point = vec3(0);
+////                vec3 x_bottom_intersection_point = vec3(0);
+////                vec3 y_bottom_intersection_point = vec3(0);
+////                vec3 z_bottom_intersection_point = vec3(0);
+////                bool is_not_null[6] = { false, false, false, false, false, false };
+////                float x1 = lastframe_vertice[0];
+////                float x2 = current_vertice[0];
+////                float y1 = lastframe_vertice[1];
+////                float y2 = current_vertice[1];
+////                float z1 = lastframe_vertice[2];
+////                float z2 = current_vertice[2];
+////
+////                    x_top_intersection_point = findIntercestionPoint((-x1 + top[0]) / (x2 - x1), x1, x2, y1, y2, z1, z2);
+////                    x_bottom_intersection_point = findIntercestionPoint((-x1 + bottom[0]) / (x2 - x1), x1, x2, y1, y2, z1, z2);
+////                    y_top_intersection_point = findIntercestionPoint((-y1 + top[1]) / (y2 - y1), x1, x2, y1, y2, z1, z2);
+////                    y_bottom_intersection_point = findIntercestionPoint((-y1 + bottom[1]) / (y2 - y1), x1, x2, y1, y2, z1, z2);
+////                    z_top_intersection_point = findIntercestionPoint((-z1 + top[2]) / (z2 - z1), x1, x2, y1, y2, z1, z2);
+////                    z_bottom_intersection_point = findIntercestionPoint((-z1 + bottom[2]) / (z2 - z1), x1, x2, y1, y2, z1, z2);
+////                    
+////                bool check = false;
+////                float x_top = max(current_vertice[0], lastframe_vertice[0]);
+////                float y_top = max(current_vertice[1], lastframe_vertice[1]);
+////                float z_top = max(current_vertice[2], lastframe_vertice[2]);
+////                float x_bottom = min(current_vertice[0], lastframe_vertice[0]);
+////                float y_bottom = min(current_vertice[1], lastframe_vertice[1]);
+////                float z_bottom = min(current_vertice[2], lastframe_vertice[2]);
+////
+////                //check if they are belong{
+////                    bool flag = false;
+////                    bool remain = true;
+////                    vec3 first_point;
+////                    vec3 second_point;
+////                    bool belong[2];
+////                    if((x_top_intersection_point[1] <= top[1] && x_top_intersection_point[1] >= bottom[1]) && (x_top_intersection_point[2] <= top[2] && x_top_intersection_point[2] >= bottom[2])){
+////                        first_point = x_top_intersection_point;
+////                        flag = true;
+////                    }
+////                    if((x_bottom_intersection_point[1] <= top[1] && x_bottom_intersection_point[1] >= bottom[1]) && (x_bottom_intersection_point[2] <= top[2] && x_bottom_intersection_point[2] >= bottom[2])){
+////                        if(flag){
+////                            second_point = x_bottom_intersection_point;
+////                            remain = false;
+////                        } else {
+////                            first_point = x_bottom_intersection_point;
+////                            flag = true;
+////                        }
+////                    }
+////                    if(remain && (y_top_intersection_point[0] <= top[0] && y_top_intersection_point[0] >= bottom[0]) && (y_top_intersection_point[2] <= top[2] && y_top_intersection_point[2] >= bottom[2])){
+////                        if(flag){
+////                            second_point = y_top_intersection_point;
+////                            remain = false;
+////                        } else {
+////                            first_point = y_top_intersection_point;
+////                            flag = true;
+////                        }
+////                    }
+////                    if(remain && (y_bottom_intersection_point[0] <= top[0] && y_bottom_intersection_point[0] >= bottom[0]) && (y_bottom_intersection_point[2] <= top[2] && y_bottom_intersection_point[2] >= bottom[2])){
+////                        if(flag){
+////                            second_point = y_bottom_intersection_point;
+////                            remain = false;
+////                        } else {
+////                            first_point = y_bottom_intersection_point;
+////                            flag = true;
+////                        }
+////                    }
+////                    if(remain && (z_top_intersection_point[0] <= top[0] && z_top_intersection_point[0] >= bottom[0]) && (z_top_intersection_point[1] <= top[1] && z_top_intersection_point[1] >= bottom[1])){
+////                        if(flag){
+////                            second_point = z_top_intersection_point;
+////                            remain = false;
+////                        } else {
+////                            first_point = z_top_intersection_point;
+////                            flag = true;
+////                        }
+////                    }
+////                    if(remain && (z_bottom_intersection_point[0] <= top[0] && z_bottom_intersection_point[0] >= bottom[0]) && (z_bottom_intersection_point[1] <= top[1] && z_bottom_intersection_point[1] >= bottom[1])){
+////                        if(flag){
+////                            second_point = z_bottom_intersection_point;
+////                            remain = false;
+////                        } else {
+////                            first_point = z_bottom_intersection_point;
+////                            flag = true;
+////                        }
+////                    }
+////
+////                    belong[0] = belonging_check(first_point, x_top, y_top, z_top, x_bottom, y_bottom, z_bottom);
+////                    belong[1] = belonging_check(second_point, x_top, y_top, z_top, x_bottom, y_bottom, z_bottom);
+////                    bool nothing_equal = true;
+////                    bool by_direct = false;
+////                    if(((lastframe_vertice[0] - first_point[0]) * (lastframe_vertice[0] - first_point[0]) + (lastframe_vertice[1] - first_point[1]) * (lastframe_vertice[1] - first_point[1]) + (lastframe_vertice[2] - first_point[2]) * (lastframe_vertice[2] - first_point[2]) < 0.01)){
+////                        nothing_equal = false;
+////                        by_direct = check_direction(vec3(current_vertice), vec3(lastframe_vertice), second_point);
+////                    }
+////                    else if((lastframe_vertice[0] - second_point[0]) * (lastframe_vertice[0] - second_point[0]) + (lastframe_vertice[1] - second_point[1]) * (lastframe_vertice[1] - second_point[1]) + (lastframe_vertice[2] - second_point[2]) * (lastframe_vertice[2] - second_point[2]) < 0.01) { 
+////                        nothing_equal = false;
+////                        by_direct = check_direction(vec3(current_vertice), vec3(lastframe_vertice), first_point);
+////                    }
+////                    
+////
+////                    if (!remain && (nothing_equal || (by_direct))) {
+////                        if(belong[0] && length(first_point - vec3(lastframe_vertice)) < length(second_point - vec3(lastframe_vertice))){
+////                            intersection_point = first_point;
+////                            check = true;
+////                        } else if (belong[1] && length(second_point - vec3(lastframe_vertice)) < length(first_point - vec3(lastframe_vertice))){
+////                            intersection_point = second_point;
+////                            check = true;
+////                        }
+////                    }
+////
+////                if(check) {
+////                    intersections[uint(cubeHitboxes[i].side_length[3])].index_intersected_by[uint(current_vertice[3])] = vec4(intersection_point, current_vertice[3]);
+////                    intersections[uint(cubeHitboxes[i].side_length[3])].index = uint(cubeHitboxes[i].side_length[3]);
+////                    vec3 pushout = intersection_point - vec3(current_vertice);
+////                    physicalObjectsInfo[uint(current_vertice[3])].pos_index += vec4(pushout, 0);
+////                    intersections[uint(cubeHitboxes[0].side_length[3])].index_intersected_by[uint(current_vertice[3])] = vec4(vec3(first_point), 1);
+////                    physicalObjectsInfo[uint(current_vertice[3])].velocity_mass = vec4(vec3(0), physicalObjectsInfo[uint(current_vertice[3])].velocity_mass[3]);
+////                }
+////            
+////        }

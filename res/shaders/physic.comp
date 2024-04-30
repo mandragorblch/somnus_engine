@@ -1,0 +1,132 @@
+#version 460
+
+vec4 SLERP(vec4 start, vec4 end, float t) {
+    float dot_mult = start.w * end.w + start.x * end.x + start.y * end.y + start.z * end.z;
+    float theta = acos(dot_mult);
+    vec4 result = (sin((1 - t) * theta) * start + sin(t * theta) * end) / sin(theta);
+    if (dot_mult < 0) {
+        return -result;
+    }
+    return result;
+}
+
+vec4 LERP(vec4 start, vec4 end, float t) {
+    return normalize(start + (end - start) * t);
+}
+
+vec4 multiply_quats(const vec4 first, const vec4 second) {
+	return normalize(vec4(first.w * second.xyz + second.w * first.xyz + vec3(first.y * second.z - first.z * second.y, first.z * second.x - first.x * second.z, first.x * second.y - first.y * second.x), (first.w * second.w - (first.x * second.x + first.y * second.y + first.z * second.z))));
+}
+
+vec4 quat_from_angles_vec4(const vec3 angles) {
+	vec4 local[3];
+	local[2].x = 0;
+	local[2].y = 0;
+	local[2].z = sin(angles.z / 2);
+	local[2].w = cos(angles.z / 2);
+
+	local[1].x = 0;
+	local[1].y = sin(angles.y / 2);
+	local[1].z = 0;
+	local[1].w = cos(angles.y / 2);
+
+	local[0].x = sin(angles.x / 2);
+	local[0].y = 0;
+	local[0].z = 0;
+	local[0].w = cos(angles.x / 2);
+
+	return multiply_quats(multiply_quats(local[2], local[1]), local[0]);
+}
+
+vec3 rotation_by_quat(const vec3 pos, const vec4 quat) {
+	const vec4 res = multiply_quats(multiply_quats(quat, vec4(pos, 0.f)), vec4(-quat.x, -quat.y, -quat.z, quat.w));
+	return vec3(res.x, res.y, res.z);
+}
+
+vec4 reverse_quat(vec4 quat) {
+    return(vec4(-quat.x, -quat.y, -quat.z, quat.w));
+}
+
+#define MAX_HITBOXES 16
+#define MAX_INTERSECTIONS 128
+//---------------------------------------------------------------------------------------------------------------------
+struct physicalObjectInfo {
+    vec4 pos_index;
+    vec4 quat_rot;
+    vec4 velocity_mass;
+    vec4 angularVelocity_momentOfInertia;
+    vec4 force;
+    uint type;
+    float lifeTime;
+    bool should_be_deleted;
+};
+
+layout(std430, binding = 0) buffer physicalObjectInfoDevice {
+    physicalObjectInfo physicalObjectsInfo[ ];
+} device;
+
+layout(std430, binding = 1) buffer physicalObjectInfoHost {
+    physicalObjectInfo physicalObjectsInfo[ ];
+} host;
+
+layout(std430, binding = 2) buffer objectInfo {
+    uint index[100000];
+} info;
+
+layout(std430, binding = 3) buffer clustersSize {
+    uint size[100000];
+} clusters;
+
+//layout(std430, binding = 1) buffer intersectionsCountBuffer_OUT {
+//    ivec4 objects_amount;
+//};
+
+layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+vec3 g = vec3(0.f, -9.81f, 0.f);
+float deltaTime_144Hz = 1./144.;
+float deltaTime_60Hz = 1./60.;
+
+void main() //this shit is for custom speeds and trajectories
+{
+    uint index = info.index[gl_GlobalInvocationID.x];
+    physicalObjectInfo currentObject = host.physicalObjectsInfo[index];
+
+    if(!currentObject.should_be_deleted){
+        float currentDeltaTime = deltaTime_60Hz;
+
+        switch(currentObject.type){
+            case 1:
+                if(currentObject.lifeTime != -1.0f){
+                    currentObject.lifeTime -= currentDeltaTime;
+                    currentObject.should_be_deleted = currentObject.lifeTime < 0;
+                }
+            break;
+            case 2:
+                if(currentObject.lifeTime != -1.0f){
+                    currentObject.lifeTime -= currentDeltaTime;
+                    if(currentObject.lifeTime < 0){
+                        currentObject.should_be_deleted = true;
+                        atomicAdd(clusters.size[floatBitsToUint(currentObject.pos_index.w)], -1);
+                    }
+                }
+
+                if(currentObject.velocity_mass.w != 0){
+                    vec3 speed_increment = vec3(0);
+//                    vec3 resistance = 0.03180 * pow(length(currentObject.velocity_mass.xyz), 2) * normalize(currentObject.velocity_mass.xyz);
+                    float resistance = 0.95;
+                    speed_increment = (currentObject.force.xyz - resistance)  * (currentDeltaTime / currentObject.velocity_mass.w);
+                    currentObject.velocity_mass.xyz *= resistance;
+                    currentObject.velocity_mass.xyz += speed_increment;
+        //            currentObject.angularVelocity_momentOfInertia.xyz *= resistance;
+        //            currentObject.quat_rot = multiply_quats(quat_from_angles_vec4(currentObject.angularVelocity_momentOfInertia.xyz), currentObject.quat_rot);
+                    currentObject.force.xyz = currentObject.velocity_mass.w * g;
+                }
+
+                currentObject.pos_index.xyz += currentObject.velocity_mass.xyz * currentDeltaTime;
+            break;
+        }
+        host.physicalObjectsInfo[index] = currentObject;
+        device.physicalObjectsInfo[index] = currentObject;
+    }
+}

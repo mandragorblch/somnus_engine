@@ -3,7 +3,7 @@
 #define WINDOW_EVENTS_H_
 
 #include "tools/camera.h"
-#include "src/vk.h"
+#include "vulkan/vk.h"
 
 typedef unsigned int uint;
 

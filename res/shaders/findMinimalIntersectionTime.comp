@@ -1,0 +1,92 @@
+#version 460
+
+#extension GL_ARB_separate_shader_objects : enable
+
+#define MAX_INTERSECTIONS 128
+
+vec4 multiply_quats(const vec4 first, const vec4 second) {
+	return vec4(first.w * second.xyz + second.w * first.xyz + vec3(first.y * second.z - first.z * second.y, first.z * second.x - first.x * second.z, first.x * second.y - first.y * second.x), (first.w * second.w - (first.x * second.x + first.y * second.y + first.z * second.z)));
+}
+
+vec4 quat_from_angles_vec4(const vec3 angles) {
+	vec4 local[3];
+	local[2].x = 0;
+	local[2].y = 0;
+	local[2].z = sin(angles.z / 2);
+	local[2].w = cos(angles.z / 2);
+
+	local[1].x = 0;
+	local[1].y = sin(angles.y / 2);
+	local[1].z = 0;
+	local[1].w = cos(angles.y / 2);
+
+	local[0].x = sin(angles.x / 2);
+	local[0].y = 0;
+	local[0].z = 0;
+	local[0].w = cos(angles.x / 2);
+
+	return multiply_quats(multiply_quats(local[2], local[1]), local[0]);
+}
+
+vec3 rotation_by_quat(const vec3 pos, const vec4 quat) {
+	const vec4 res = multiply_quats(multiply_quats(quat, vec4(pos, 0.f)), vec4(-quat.x, -quat.y, -quat.z, quat.w));
+	return vec3(res.x, res.y, res.z);
+}
+
+struct hitboxVertice {
+    vec4 pos_index; //WHERE VEC3 - XYZ, 4RD - INDEX OF HITBOX
+    vec4 velocity_intersectionTime;
+    bool goingInside;
+};
+
+struct cubeHitbox {
+    vec4 rot;
+    vec4 pos;
+    vec4 side_length;//4rd is an index of an object
+    vec4 intersection_posTime;
+    vec4 velocity_goingInside;
+    float verticeIndeces[8];
+};
+
+layout(std430, binding = 0) buffer verticesBuffer_IN {
+   hitboxVertice hitbox_vertice[ ];
+};
+
+layout(std430, binding = 1) buffer intersectionsCountBuffer_OUT {
+    ivec4 hitboxes_amount;
+};
+
+layout(std430, binding = 2) buffer cube_hitboxesBuffer_IN {
+    cubeHitbox cubeHitboxes[ ];
+}; //WILL BE ITERATED BY INDEX OF GLOBAL INVOCATIAN X
+
+layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    cubeHitbox currentCubeHitbox = cubeHitboxes[index];
+    float minimalTime = 1.;
+    vec3 pos = vec3(0);
+    vec3 velocity = vec3(0);
+    float goingInside = 2;
+    float intersections_counter = 0.;
+    for (int hitboxIndex = 0; hitboxIndex < 8; hitboxIndex++) {
+        float currentIndice = currentCubeHitbox.verticeIndeces[hitboxIndex];
+        if (minimalTime > hitbox_vertice[uint(currentIndice)].velocity_intersectionTime[3]) {
+            minimalTime = hitbox_vertice[uint(currentIndice)].velocity_intersectionTime[3];
+            pos = vec3(hitbox_vertice[uint(currentIndice)].pos_index);
+            velocity = vec3(hitbox_vertice[uint(currentIndice)].velocity_intersectionTime);
+            goingInside = float(hitbox_vertice[uint(currentIndice)].goingInside);
+            intersections_counter = 1.;
+        } 
+        else if (minimalTime < 1. && abs(minimalTime - hitbox_vertice[uint(currentIndice)].velocity_intersectionTime[3]) <= 0.000) {//fix inaccuracy????
+            pos += vec3(hitbox_vertice[uint(currentIndice)].pos_index);
+            velocity += vec3(hitbox_vertice[uint(currentIndice)].velocity_intersectionTime);
+            intersections_counter++;
+        }
+    }
+    pos /= intersections_counter;
+    velocity /= intersections_counter;
+    cubeHitboxes[index].intersection_posTime = vec4(pos, minimalTime);
+    cubeHitboxes[index].velocity_goingInside = vec4(velocity, goingInside);
+}

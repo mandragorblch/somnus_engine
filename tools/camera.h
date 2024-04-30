@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
 
-class camera
+class Ñamera
 {
 private:
 
@@ -11,21 +11,26 @@ public:
 	glm::vec3 relative_up;
 	glm::vec3 relative_right;
 
-	glm::vec3 norm_z = glm::vec3(0, 0, -1);
-	glm::vec3 norm_x = glm::vec3(1, 0, 0);
-	glm::vec3 norm_y = glm::vec3(0, 1, 0);
+	const glm::vec3 norm_z{ 0, 0, -1 };
+	const glm::vec3 norm_x{ 1, 0, 0 };
+	const glm::vec3 norm_y{ 0, 1, 0 };
 
-	glm::mat4 rotation;
+	struct ProjViewMatrix* const projView = nullptr;
+	glm::vec4 quat_rot{ 1, 0, 0, 0 };
 
 	float horizontalAngle = 0;
 	float verticalAngle = 0;
 
-	float fov;
+	float inverseTanHalfFovy;
 	glm::vec3 position;
-	camera(glm::vec3 position, float fov);
+	Ñamera(glm::vec3 position, float fov);
+	glm::mat4 projection;
 
 	void rotate(float x, float y, float z);
 
-	glm::mat4 getProjection(float aspect);
+	void updateProjectionAspect(float inversedAspect);
 	glm::mat4 getView();
+	void updateProjViewMatrix();
+
+	~Ñamera();
 };
