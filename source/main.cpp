@@ -12,7 +12,12 @@ using namespace std::chrono_literals;
 int main() {
   using clock = std::chrono::high_resolution_clock;
   app m_app(60, "res/wav/");
-
+  const std::vector<std::string> adjective = {
+      "lucky",   "very lucky",   "incredibly lucky",
+      "happy",   "the happiest", "wonderful",
+      "amazing", "brave",        "adorable",
+      "sweet",   "cute",         "lovely",
+      "silly",   "strong",       "magical"};
 
 
   auto WHOA_IT = m_app.add_audio("LEGALIZENUCLEAR.wav", 0.1_r);
