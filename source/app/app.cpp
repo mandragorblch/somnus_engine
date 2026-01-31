@@ -18,12 +18,6 @@ app::app(float target_FPS, const std::string& audio_files_path, real master_volu
 
   //TODO multidisplay
   _displays = SDL_GetDisplays(&_displays_count);
-  const SDL_DisplayMode* mode = SDL_GetCurrentDisplayMode(_displays[0]);
-  if (mode) {
-    _resolution.x = mode->w;
-    _resolution.y = mode->h;
-  }
-  _aspect_ratio = _resolution.x / _resolution.y;
 }
 
 app::~app() {}
@@ -98,16 +92,6 @@ void app::_audio_tick() {
     }
     return false;
   });
-  // for (auto it = _active_audios.begin(); it != _active_audios.end();) {
-  //   audio* p_audio = *it;
-  //   if (!p_audio->is_playing()) {
-  //     p_audio->pause();
-  //     it = _active_audios.erase(it);
-  //     continue;
-  //   }
-
-  //  ++it;
-  //}
 }
 
 //tackle callbacks
@@ -120,7 +104,7 @@ void app::_callback_tick() {
 
       case SDL_EVENT_QUIT:
         // TODO silly thing;
-        std::cout << "\nu silly, dont close all windows :p \n";
+        std::cout << "\nu silly, dont close all windows :p\n";
         break;
 
       case SDL_EVENT_MOUSE_BUTTON_DOWN:

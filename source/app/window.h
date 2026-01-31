@@ -8,6 +8,7 @@ struct window {
   struct app* _app = nullptr;
   SDL_Window* _window = nullptr;
   SDL_Surface* _surface = nullptr;
+  const SDL_DisplayMode* _mode = nullptr;
   int _width;
   int _height;
 
@@ -20,4 +21,6 @@ struct window {
 
   //TODO detect on wich display if diff res
   vec2<> get_win_pos_rel();
+
+  real get_aspect_ratio();
 };

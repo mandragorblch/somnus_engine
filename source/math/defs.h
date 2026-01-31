@@ -16,7 +16,7 @@ enum class ParseError {
 consteval std::expected<real, ParseError> parse_at_compile_time(
     const char* buffer, size_t sz) {
   real _real{};
-  char ch;
+  char ch = '\0';
   size_t it = 0uz;
   for (; it < sz; ++it) {
     ch = buffer[it];
@@ -42,7 +42,7 @@ consteval std::expected<real, ParseError> parse_at_compile_time(
 }
 
 template <char... real_chars>
-consteval real operator"" _r() {
+consteval real operator""_r() {
   constexpr char buffer[] = {real_chars..., '\0'};
   constexpr auto res = parse_at_compile_time(buffer, sizeof...(real_chars));
   static_assert(res.has_value(), "NaN");

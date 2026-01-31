@@ -32,8 +32,10 @@ struct app {
 
   int _displays_count{};
   SDL_DisplayID* _displays = nullptr;
-  vec2<int> _resolution{};
-  real _aspect_ratio{};
+
+  //TODO decide to keep or remove
+  //vec2<int> _resolution{};
+  //real _aspect_ratio{};
 
   public:
   bool running = true;

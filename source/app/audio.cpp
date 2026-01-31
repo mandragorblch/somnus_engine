@@ -23,7 +23,7 @@ bool audio::play() {
   SDL_AudioStream* free_stream = find_free_stream();
 
   if (free_stream ==
-      nullptr) {  // TODO smth related with creating second audiostream
+      nullptr) {
     free_stream = create_stream();
   }
 
@@ -32,7 +32,7 @@ bool audio::play() {
     process_audio_buff();
   }
 
-  if (SDL_PutAudioStreamData(free_stream, _processedAudioBuf, _audioLen) < 0) {
+  if (!SDL_PutAudioStreamData(free_stream, _processedAudioBuf, _audioLen)) {
     std::cerr << "Failed to push audio: " << SDL_GetError() << std::endl;
   }
 
@@ -122,14 +122,15 @@ void audio::process_audio_buff() {
     case SDL_AUDIO_F32: {
       float* oBuff = reinterpret_cast<float*>(_originalAudioBuf);
       float* pBuff = reinterpret_cast<float*>(_processedAudioBuf);
-      for (int i = 0; i < totalSamples; ++i) pBuff[i] = oBuff[i] * final_volume;
+      for (int i = 0; i < totalSamples; ++i)
+        pBuff[i] = static_cast<float>(oBuff[i] * final_volume);
       break;
     }
     case SDL_AUDIO_S16: {
       Sint16* oBuff = reinterpret_cast<Sint16*>(_originalAudioBuf);
       Sint16* pBuff = reinterpret_cast<Sint16*>(_processedAudioBuf);
       for (int i = 0; i < totalSamples; ++i) {
-        int32_t v = static_cast<int32_t>(oBuff[i]) * final_volume;
+        int32_t v = static_cast<int32_t>(oBuff[i] * final_volume);
         pBuff[i] = static_cast<Sint16>(SDL_clamp(v, -32768, 32767));
       }
       break;
@@ -138,14 +139,14 @@ void audio::process_audio_buff() {
       Sint32* oBuff = reinterpret_cast<Sint32*>(_originalAudioBuf);
       Sint32* pBuff = reinterpret_cast<Sint32*>(_processedAudioBuf);
       for (int i = 0; i < totalSamples; ++i) {
-        int64_t v = static_cast<int64_t>(oBuff[i]) * final_volume;
+        int64_t v = static_cast<int64_t>(oBuff[i] * final_volume);
         pBuff[i] = static_cast<Sint32>(SDL_clamp(v, -32768, 32767));
       }
       break;
     }
     case SDL_AUDIO_U8: {
       for (int i = 0; i < totalSamples; ++i) {
-        int32_t v = static_cast<int32_t>(_originalAudioBuf[i] - 128) * final_volume + 128;
+        int32_t v = static_cast<int32_t>((_originalAudioBuf[i] - 128) * final_volume + 128);
         _processedAudioBuf[i] = static_cast<Uint8>(SDL_clamp(v, 0, 255));
       }
       break;
