@@ -19,6 +19,7 @@ struct audio {
   SDL_AudioStream* _last_stream_used = nullptr;
   real _volume{};
   real* _p_master_volume = nullptr;
+  real _cur_volume{};
 
   audio(const std::string& filename, real* p_master_volume,
         real volume = 1.0_r,

@@ -1,20 +1,17 @@
 #include "audio.h"
+#include <assert.h>
 
 audio::audio(const std::string& filename, real* p_master_volume, real volume,
              SDL_AudioDeviceID deviceID)
     : _devID(deviceID), _p_master_volume(p_master_volume), _volume(volume) {
-  if (!SDL_LoadWAV(filename.data(), &_spec, &_originalAudioBuf, &_audioLen)) {
-    std::cout << SDL_GetError();
-  }
+  assert(SDL_LoadWAV(filename.data(), &_spec, &_originalAudioBuf, &_audioLen) && SDL_GetError());
 
   _processedAudioBuf = new Uint8[_audioLen];
 
   process_audio_buff();
 
   _devID = SDL_OpenAudioDevice(_devID, &_spec);
-  if (_devID == 0) {
-    std::cout << SDL_GetError();
-  }
+  assert(_devID && SDL_GetError());
 }
 
 bool audio::play() {
@@ -28,15 +25,14 @@ bool audio::play() {
   }
 
   if (real master_volume = *_p_master_volume;
-      _processedAudioBuf[0] != master_volume * _volume * _originalAudioBuf[0]) {
+      _cur_volume != master_volume * _volume) {
+    _cur_volume = master_volume * _volume;
     process_audio_buff();
   }
 
-  if (!SDL_PutAudioStreamData(free_stream, _processedAudioBuf, _audioLen)) {
-    std::cerr << "Failed to push audio: " << SDL_GetError() << std::endl;
-  }
+  assert(SDL_PutAudioStreamData(free_stream, _processedAudioBuf, _audioLen) && SDL_GetError());
 
-  SDL_ResumeAudioStreamDevice(free_stream);
+  assert(SDL_ResumeAudioStreamDevice(free_stream) && SDL_GetError());
 
   _last_stream_used = free_stream;
 
@@ -113,7 +109,6 @@ audio::~audio() {
 }
 
 void audio::process_audio_buff() {
-  real final_volume = (*_p_master_volume) * _volume;
 
   int bytesPerSample = SDL_AUDIO_BYTESIZE(_spec.format);
   int totalSamples = _audioLen / bytesPerSample;
@@ -123,14 +118,14 @@ void audio::process_audio_buff() {
       float* oBuff = reinterpret_cast<float*>(_originalAudioBuf);
       float* pBuff = reinterpret_cast<float*>(_processedAudioBuf);
       for (int i = 0; i < totalSamples; ++i)
-        pBuff[i] = static_cast<float>(oBuff[i] * final_volume);
+        pBuff[i] = static_cast<float>(oBuff[i] * _cur_volume);
       break;
     }
     case SDL_AUDIO_S16: {
       Sint16* oBuff = reinterpret_cast<Sint16*>(_originalAudioBuf);
       Sint16* pBuff = reinterpret_cast<Sint16*>(_processedAudioBuf);
       for (int i = 0; i < totalSamples; ++i) {
-        int32_t v = static_cast<int32_t>(oBuff[i] * final_volume);
+        int32_t v = static_cast<int32_t>(oBuff[i] * _cur_volume);
         pBuff[i] = static_cast<Sint16>(SDL_clamp(v, -32768, 32767));
       }
       break;
@@ -139,14 +134,14 @@ void audio::process_audio_buff() {
       Sint32* oBuff = reinterpret_cast<Sint32*>(_originalAudioBuf);
       Sint32* pBuff = reinterpret_cast<Sint32*>(_processedAudioBuf);
       for (int i = 0; i < totalSamples; ++i) {
-        int64_t v = static_cast<int64_t>(oBuff[i] * final_volume);
+        int64_t v = static_cast<int64_t>(oBuff[i] * _cur_volume);
         pBuff[i] = static_cast<Sint32>(SDL_clamp(v, -32768, 32767));
       }
       break;
     }
     case SDL_AUDIO_U8: {
       for (int i = 0; i < totalSamples; ++i) {
-        int32_t v = static_cast<int32_t>((_originalAudioBuf[i] - 128) * final_volume + 128);
+        int32_t v = static_cast<int32_t>((_originalAudioBuf[i] - 128) * _cur_volume + 128);
         _processedAudioBuf[i] = static_cast<Uint8>(SDL_clamp(v, 0, 255));
       }
       break;
