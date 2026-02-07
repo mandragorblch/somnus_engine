@@ -101,6 +101,14 @@ void audio::clean_up() {
   SDL_PauseAudioStreamDevice(_streams.front());
 }
 
+void audio::audio_callback(void* userdata, SDL_AudioStream* stream,
+                           int additional_amount, int total_amount) {
+
+  assert(SDL_PutAudioStreamData(stream, buffer.data(),
+                                buffer.size() * sizeof(int16_t)) &&
+         SDL_GetError());
+}
+
 audio::~audio() {
   clear_streams();
   SDL_CloseAudioDevice(_devID);

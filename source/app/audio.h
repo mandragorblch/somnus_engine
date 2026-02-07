@@ -14,6 +14,7 @@ struct audio {
   Uint8* _originalAudioBuf = nullptr;
   //apply volume
   Uint8* _processedAudioBuf = nullptr;
+
   Uint32 _audioLen = 0;
   SDL_AudioSpec _spec;
   SDL_AudioStream* _last_stream_used = nullptr;
@@ -48,4 +49,7 @@ struct audio {
   void clear_stream(SDL_AudioStream* stream);
 
   void clean_up();
+
+  void audio_callback(void* userdata, SDL_AudioStream* stream,
+                      int additional_amount, int total_amount);
 };
