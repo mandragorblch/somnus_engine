@@ -7,9 +7,21 @@
 
 using namespace smns::defs;
 
+//TODO uncrihgify it
+//my own helper
+struct sdl_audio_stream_data
+{
+  SDL_AudioStream* stream = nullptr;
+  std::atomic<size_t> last_byte_it{};
+  uint64_t* p_couter = nullptr;
+};
+
 struct audio {
   SDL_AudioDeviceID _devID;
+  //TODO delete
   std::vector<SDL_AudioStream*> _streams{};
+
+  std::vector<sdl_audio_stream_data*> _stream_datas{};
   //dont touch, original audio file stored here
   Uint8* _originalAudioBuf = nullptr;
   //apply volume
@@ -17,7 +29,11 @@ struct audio {
 
   Uint32 _audioLen = 0;
   SDL_AudioSpec _spec;
+  //TODO delete
   SDL_AudioStream* _last_stream_used = nullptr;
+
+  uint64_t _streams_playing{};
+  uint64_t _streams_existing{};
   real _volume{};
   real* _p_master_volume = nullptr;
   real _cur_volume{};

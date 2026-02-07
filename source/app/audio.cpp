@@ -14,6 +14,7 @@ audio::audio(const std::string& filename, real* p_master_volume, real volume,
   assert(_devID && SDL_GetError());
 }
 
+//TODO rewrite
 bool audio::play() {
   // needed to decide is its already playing to add/not add to active audios
   bool res = is_playing();
@@ -45,11 +46,13 @@ void audio::pause() {
   }
 };
 
+//TODO rewrite to callbacks
 bool audio::is_playing() {
   return (_last_stream_used != nullptr &&
           SDL_GetAudioStreamAvailable(_last_stream_used));
 }
 
+//TODO rewrite
 SDL_AudioStream* audio::create_stream() {
   SDL_AudioStream* s = SDL_OpenAudioDeviceStream(_devID, &_spec, NULL, NULL);
   _streams.push_back(s);
@@ -63,6 +66,7 @@ SDL_AudioStream* audio::create_stream() {
   return _streams.back();
 }
 
+//TODO add queue?
 SDL_AudioStream* audio::find_free_stream() {
   size_t free_index = 0uz;
 
@@ -78,6 +82,7 @@ SDL_AudioStream* audio::find_free_stream() {
   return _streams[free_index];
 }
 
+//TODO rewrite
 void audio::clear_streams() {
   for (auto* s : _streams) {
     clear_stream(s);
@@ -86,11 +91,13 @@ void audio::clear_streams() {
   _streams.clear();
 }
 
+//TODO rewrite
 void audio::clear_stream(SDL_AudioStream* stream) {
   SDL_PauseAudioStreamDevice(stream);
   SDL_DestroyAudioStream(stream);
 }
 
+//TODO rewrite
 void audio::clean_up() {
   if (_streams.empty()) return;
   for (auto s_it = _streams.begin() + 1; s_it != _streams.end(); ++s_it) {
@@ -103,7 +110,7 @@ void audio::clean_up() {
 
 void audio::audio_callback(void* userdata, SDL_AudioStream* stream,
                            int additional_amount, int total_amount) {
-
+    //TODO link userdata to new struct that holding atomic iterator, maybe its good to make counter of playing streams
   assert(SDL_PutAudioStreamData(stream, buffer.data(),
                                 buffer.size() * sizeof(int16_t)) &&
          SDL_GetError());
