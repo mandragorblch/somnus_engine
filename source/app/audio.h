@@ -9,19 +9,60 @@ using namespace smns::defs;
 
 //TODO uncrihgify it
 //my own helper
-struct sdl_audio_stream_data
-{
-  SDL_AudioStream* stream = nullptr;
-  std::atomic<size_t> last_byte_it{};
-  uint64_t* p_couter = nullptr;
-};
+namespace smns {
+namespace SDL_helpers {
+  struct audio_stream_data {
+    SDL_AudioStream* _p_stream = nullptr;
+    uint64_t* _p_streams_playing = nullptr;
+    uint64_t* _p_streams_existing = nullptr;
+    std::atomic<size_t> _last_byte_it;
+    bool _is_playing = false;
+
+
+
+    audio_stream_data(SDL_AudioStream* p_stream, uint64_t* p_streams_playing,
+                      uint64_t* p_streams_existing)
+        : _p_stream(p_stream),
+          _p_streams_playing(p_streams_playing),
+          _p_streams_existing(p_streams_existing),
+          _last_byte_it(0),
+          _is_playing(false) {}
+    //audio_stream_data() = delete;
+
+    audio_stream_data(const audio_stream_data& other) = delete;
+    audio_stream_data& operator=(const audio_stream_data& other) = delete;
+
+    audio_stream_data(audio_stream_data&& other)
+        : _p_stream(other._p_stream),
+          _p_streams_playing(other._p_streams_playing),
+          _p_streams_existing(other._p_streams_existing),
+          _last_byte_it(other._last_byte_it.load(std::memory_order_relaxed)),
+          _is_playing(other._is_playing) {}
+    audio_stream_data& operator=(audio_stream_data&& other) {
+      _p_stream = other._p_stream;
+      _p_streams_playing = other._p_streams_playing;
+      _p_streams_existing = other._p_streams_existing;
+      _last_byte_it.store(other._last_byte_it.load(std::memory_order_relaxed),
+                          std::memory_order_relaxed);
+      _is_playing = other._is_playing;
+
+      return *this;
+    }
+
+
+
+    //~audio_stream_data() = default;
+  };
+}  // namespace smns
+}
 
 struct audio {
+    using audio_stream_data = smns::SDL_helpers::audio_stream_data;
   SDL_AudioDeviceID _devID;
   //TODO delete
   std::vector<SDL_AudioStream*> _streams{};
 
-  std::vector<sdl_audio_stream_data*> _stream_datas{};
+  std::vector<audio_stream_data> _stream_datas{};
   //dont touch, original audio file stored here
   Uint8* _originalAudioBuf = nullptr;
   //apply volume

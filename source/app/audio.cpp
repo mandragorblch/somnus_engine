@@ -54,16 +54,17 @@ bool audio::is_playing() {
 
 //TODO rewrite
 SDL_AudioStream* audio::create_stream() {
-  SDL_AudioStream* s = SDL_OpenAudioDeviceStream(_devID, &_spec, NULL, NULL);
-  _streams.push_back(s);
+  SDL_AudioStream* p_stream = SDL_OpenAudioDeviceStream(_devID, &_spec, NULL, NULL);
+  assert(p_stream && SDL_GetError());
 
-  if (_streams.back() == NULL) {
-    std::cout << SDL_GetError();
-  }
+  bool success = SDL_BindAudioStream(_devID, p_stream);
+  assert(success && SDL_GetError());
 
-  SDL_BindAudioStream(_devID, _streams.back());
+    //_streams.push_back(s);
+  //audio_stream_data s_data(p_stream, &_streams_playing, &_streams_existing);
+  _stream_datas.emplace_back(p_stream, &_streams_playing, &_streams_existing);
 
-  return _streams.back();
+  return p_stream;
 }
 
 //TODO add queue?
@@ -108,13 +109,13 @@ void audio::clean_up() {
   SDL_PauseAudioStreamDevice(_streams.front());
 }
 
-void audio::audio_callback(void* userdata, SDL_AudioStream* stream,
-                           int additional_amount, int total_amount) {
-    //TODO link userdata to new struct that holding atomic iterator, maybe its good to make counter of playing streams
-  assert(SDL_PutAudioStreamData(stream, buffer.data(),
-                                buffer.size() * sizeof(int16_t)) &&
-         SDL_GetError());
-}
+//void audio::audio_callback(void* userdata, SDL_AudioStream* stream,
+//                           int additional_amount, int total_amount) {
+//    //TODO link userdata to new struct that holding atomic iterator, maybe its good to make counter of playing streams
+//  assert(SDL_PutAudioStreamData(stream, buffer.data(),
+//                                buffer.size() * sizeof(int16_t)) &&
+//         SDL_GetError());
+//}
 
 audio::~audio() {
   clear_streams();
@@ -166,3 +167,12 @@ void audio::process_audio_buff() {
       break;
   }
 }
+
+//smns::SDL_helpers::audio_stream_data::audio_stream_data(
+//    SDL_AudioStream* p_stream, uint64_t* p_streams_playing,
+//    uint64_t* p_streams_existing)
+//    : _p_stream(p_stream),
+//      _p_streams_playing(p_streams_playing),
+//      _p_streams_existing(p_streams_existing),
+//      _last_byte_it(0),
+//      _is_playing(false) {}

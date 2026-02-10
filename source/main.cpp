@@ -52,7 +52,7 @@ int main() {
   using clock = std::chrono::high_resolution_clock;
   app m_app(60, "res/wav/");
 
-  auto WHOA_IT = m_app.add_audio("LEGALIZENUCLEAR.wav", 0.1_r);
+  auto WHOA_IT = m_app.add_audio("LEGALIZENUCLEAR.wav", 0.3_r);
 
   auto win1 = m_app.add_window(rnd_title(), 1000, 1000);
   auto win2 = m_app.add_window(rnd_title(), 1000, 1000);
