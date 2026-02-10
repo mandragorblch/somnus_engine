@@ -62,7 +62,9 @@ SDL_AudioStream* audio::create_stream() {
 
     //_streams.push_back(s);
   //audio_stream_data s_data(p_stream, &_streams_playing, &_streams_existing);
-  _stream_datas.emplace_back(p_stream, &_streams_playing, &_streams_existing);
+  _stream_datas.emplace_back(std::make_unique<audio_stream_data>(
+        p_stream, &_streams_playing, &_streams_existing
+    ));
 
   return p_stream;
 }

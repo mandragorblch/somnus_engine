@@ -32,25 +32,8 @@ namespace SDL_helpers {
     audio_stream_data(const audio_stream_data& other) = delete;
     audio_stream_data& operator=(const audio_stream_data& other) = delete;
 
-    audio_stream_data(audio_stream_data&& other)
-        : _p_stream(other._p_stream),
-          _p_streams_playing(other._p_streams_playing),
-          _p_streams_existing(other._p_streams_existing),
-          _last_byte_it(other._last_byte_it.load(std::memory_order_relaxed)),
-          _is_playing(other._is_playing) {}
-    audio_stream_data& operator=(audio_stream_data&& other) {
-      _p_stream = other._p_stream;
-      _p_streams_playing = other._p_streams_playing;
-      _p_streams_existing = other._p_streams_existing;
-      _last_byte_it.store(other._last_byte_it.load(std::memory_order_relaxed),
-                          std::memory_order_relaxed);
-      _is_playing = other._is_playing;
-
-      return *this;
-    }
-
-
-
+    audio_stream_data(audio_stream_data&& other) = delete;
+    audio_stream_data& operator=(audio_stream_data&& other) = delete;
     //~audio_stream_data() = default;
   };
 }  // namespace smns
@@ -62,7 +45,7 @@ struct audio {
   //TODO delete
   std::vector<SDL_AudioStream*> _streams{};
 
-  std::vector<audio_stream_data> _stream_datas{};
+  std::vector<std::unique_ptr<audio_stream_data>> _stream_datas{};
   //dont touch, original audio file stored here
   Uint8* _originalAudioBuf = nullptr;
   //apply volume
