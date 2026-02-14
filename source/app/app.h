@@ -56,6 +56,11 @@ struct app {
   void play_audio(const std::string& filename);
 
 
+
+  void add_obj(obj* object);
+
+
+
   //u should call it every main loop
   void tick();
 

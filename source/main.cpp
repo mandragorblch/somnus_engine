@@ -55,12 +55,13 @@ int main() {
   auto WHOA_IT = m_app.add_audio("LEGALIZENUCLEAR.wav", 0.3_r);
 
   auto win1 = m_app.add_window(rnd_title(), 1000, 1000);
-  auto win2 = m_app.add_window(rnd_title(), 1000, 1000);
-  auto win3 = m_app.add_window(rnd_title(), 1000, 1000);
+  //auto win2 = m_app.add_window(rnd_title(), 1000, 1000);
+  //auto win3 = m_app.add_window(rnd_title(), 1000, 1000);
 
   
 
   heart m_heart(-0.5, 0.9, 2.6, 1, 0.4);
+  m_app.add_obj(&m_heart);
 
 
 

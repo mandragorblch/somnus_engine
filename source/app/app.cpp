@@ -1,6 +1,8 @@
 #include "app.h"
+#include "helpers/sdl_hlprs.h"
 
 using namespace std::chrono_literals;
+using namespace smns::sdl_hlprs;
 
 app::app(float target_FPS, const std::string& audio_files_path, real master_volume)
     : _trgt_FPS(target_FPS),
@@ -32,8 +34,17 @@ auto app::add_window(const std::string& title, int width, int height)
 
 void app::draw_frame() {
   for (auto& curr_pair : _windows) {
-    window& curr_win = *(curr_pair.second);
-    for (obj* curr_obj : objs) curr_obj->draw(curr_win._surface);
+    auto* curr_win = curr_pair.second;
+    auto surf = curr_win->_surface;
+
+    check(SDL_LockSurface(surf));
+
+    for (obj* curr_obj : objs) {
+      curr_obj->draw(surf);
+    }
+
+    SDL_UnlockSurface(surf);
+    check(SDL_UpdateWindowSurface(curr_win->_window));
   }
 }
 
@@ -61,6 +72,10 @@ void app::play_audio(const std::string& filename) {
   if (!current->play()) {
     _active_audios.push_back(current);
   }
+}
+
+void app::add_obj(obj* object) { 
+  objs.push_back(object);
 }
 
 //call all needed funtions
