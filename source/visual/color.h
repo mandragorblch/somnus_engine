@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <cstdint>
 #include <type_traits>
-#include <bit>
 
 // first format - how it stored
 // second - how it being treated
@@ -12,16 +11,18 @@ enum class PIXEL_FORMAT { RGBA_RGBA, BGRA_RGBA };
 // white by default
 template <PIXEL_FORMAT frmt = PIXEL_FORMAT::BGRA_RGBA>
 struct color_base {
-  uint8_t data[4] = {255, 255, 255, 255};
-  uint8_t& r = reinterpret_cast<uint8_t&>(data[0]);
-  uint8_t& g = reinterpret_cast<uint8_t&>(data[1]);
-  uint8_t& b = reinterpret_cast<uint8_t&>(data[2]);
-  uint8_t& alpha = reinterpret_cast<uint8_t&>(data[3]);
+  uint8_t data[4];
+  uint8_t& r = data[0];
+  uint8_t& g = data[1];
+  uint8_t& b = data[2];
+  uint8_t& a = data[3];
 
   uint8_t& operator[](size_t index) { return data[index]; }
 
   color_base(uint8_t r = 255, uint8_t g = 255, uint8_t b = 255,
-             uint8_t alpha = 255);
+             uint8_t a = 255);
+
+  color_base(const color_base& other);
 
   template <typename real_t>
     requires(std::is_arithmetic_v<real_t>)
@@ -119,25 +120,17 @@ template <PIXEL_FORMAT frmt = PIXEL_FORMAT::BGRA_RGBA>
 struct color : color_base<frmt> {
   
   template<>
-  color(const color_base<frmt>& base): color_base<frmt>(base) {
-
-  }
+  color(const color_base<frmt>& base);
 };
 
 template <>
 struct color<PIXEL_FORMAT::RGBA_RGBA> : color_base<PIXEL_FORMAT::RGBA_RGBA> {
-  uint32_t& rgba = reinterpret_cast<uint32_t&>(data[0]);
-  uint32_t to_bgra() {
-    uint32_t res = std::byteswap(rgba);
-    return std::rotl(res, 8);
-  }
+  uint32_t get_rgba();
+  uint32_t get_bgra();
 };
 
 template <>
 struct color<PIXEL_FORMAT::BGRA_RGBA> : color_base<PIXEL_FORMAT::BGRA_RGBA> {
-  uint32_t& bgra = reinterpret_cast<uint32_t&>(data[0]);
-  uint32_t to_rgba() {
-    uint32_t res = std::byteswap(bgra);
-    return std::rotl(res, 8);
-  }
+  uint32_t get_rgba();
+  uint32_t get_bgra();
 };

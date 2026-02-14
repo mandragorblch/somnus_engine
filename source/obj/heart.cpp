@@ -7,7 +7,7 @@
 using namespace smns::sdl_hlprs;
 //TODO rewrite sdl surface from bgr to rgb
 heart::heart(real x0, real y0, real phi, real x_scale, real y_scale)
-    : obj(color<>({255, 64, 64})),
+    : obj(color<>({255, 100, 150})),
       x0(x0),
       y0(y0),
       phi(phi),
@@ -45,7 +45,9 @@ void heart::draw(SDL_Surface* surf) {
   check(details);
 
   //Uint32 clr = SDL_MapRGB(details, NULL, 144, 12, 255);
-  check(SDL_FillSurfaceRect(surf, NULL, clr.bgra));
+  auto color = clr.get_bgra();
+  check(SDL_FillSurfaceRect(surf, NULL, color));
+  clr.r += 1;
 
   auto pixs = reinterpret_cast<Uint32*>(surf->pixels);
 }

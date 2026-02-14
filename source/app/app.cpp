@@ -1,5 +1,6 @@
 #include "app.h"
 #include "helpers/sdl_hlprs.h"
+#include <thread>
 
 using namespace std::chrono_literals;
 using namespace smns::sdl_hlprs;
@@ -38,6 +39,7 @@ void app::draw_frame() {
     auto surf = curr_win->_surface;
 
     check(SDL_LockSurface(surf));
+    SDL_FillSurfaceRect(surf, NULL, 0);
 
     for (obj* curr_obj : objs) {
       curr_obj->draw(surf);
@@ -94,6 +96,9 @@ void app::tick() {
 //wait till frame time given by FPS
 void app::_wait_next_frame() {
   while (clock::now() - _FPStimer < _trgt_frame_time);
+  /*auto time_elapsed = clock::now() - _FPStimer;
+  if (time_elapsed < _trgt_frame_time)
+    std::this_thread::sleep_for(_trgt_frame_time - (clock::now() - _FPStimer));*/
   std::cout << '\r' << (1s / (clock::now() - _FPStimer));
   _FPStimer = clock::now();
 }
