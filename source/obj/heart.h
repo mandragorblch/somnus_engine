@@ -8,6 +8,7 @@ using namespace smns::defs;
 //
 struct heart : obj {
  private:
+  using obj::obj;
   real x0{};
   real y0{};
   real phi{};

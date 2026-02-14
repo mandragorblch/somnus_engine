@@ -5,9 +5,14 @@
 #include "helpers/sdl_hlprs.h"
 
 using namespace smns::sdl_hlprs;
-
+//TODO rewrite sdl surface from bgr to rgb
 heart::heart(real x0, real y0, real phi, real x_scale, real y_scale)
-    : x0(x0), y0(y0), phi(phi), x_scale(x_scale), y_scale(y_scale) {
+    : obj(color<>({255, 64, 64})),
+      x0(x0),
+      y0(y0),
+      phi(phi),
+      x_scale(x_scale),
+      y_scale(y_scale) {
   calc_bounds();
 }
 
@@ -39,8 +44,8 @@ void heart::draw(SDL_Surface* surf) {
   auto details = SDL_GetPixelFormatDetails(fmt);
   check(details);
 
-  Uint32 clr = SDL_MapRGB(details, NULL, 144, 12, 255);
-  check(SDL_FillSurfaceRect(surf, NULL, clr));
+  //Uint32 clr = SDL_MapRGB(details, NULL, 144, 12, 255);
+  check(SDL_FillSurfaceRect(surf, NULL, clr.bgra));
 
   auto pixs = reinterpret_cast<Uint32*>(surf->pixels);
 }

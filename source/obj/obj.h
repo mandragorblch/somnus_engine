@@ -7,12 +7,13 @@
 
 struct obj {
  public:
+  color<> clr{};
   vec2<> pos{};
   vec2<> vel{};
   real mass{1_r};
-  color clr{};
 
-  obj() = default;
+  obj(const color<>& color = color<>{}, vec2<> pos = vec2<>{},
+      vec2<> vel = vec2<>{}, real mass = 1_r);
   obj(const obj&) = default;
   obj& operator=(const obj&) = default;
   obj(obj&&) = default;
