@@ -84,7 +84,12 @@ void app::_wait_next_frame() {
 }
 
 //audio magic
+//can be called every few ticks
 void app::_audio_tick() {
+    for (auto* curr : _active_audios) {
+    curr->tick();
+  }
+
   std::erase_if(_active_audios, [](audio* curr) {
     if (!curr->is_playing()) {
       curr->clean_up();

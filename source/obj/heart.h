@@ -7,14 +7,21 @@ using namespace smns::defs;
 // defines as rotated by angle amd mirrored pparabola
 //
 struct heart : obj {
-  real x_scale{1_r};
+ private:
   real x0{};
-  real y_scale{1_r};
   real y0{};
   real phi{};
+  real x_scale{1_r};
+  real y_scale{1_r};
 
+  real top_bound{};
+  real bottom_bound{};
+  real left_bound{};
+  real right_bound{};
+
+ public:
   // constructor
-  heart() = default;
+  heart(real x0, real y0, real phi, real x_scale, real y_scale);
 
   // copy constructor
   heart(const heart&) = default;
@@ -30,6 +37,8 @@ struct heart : obj {
 
   // destructor
   ~heart() = default;
+
+  void calc_bounds();
 
   virtual void draw(SDL_Surface* surf) override;
 };

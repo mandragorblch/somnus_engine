@@ -1,18 +1,20 @@
 #include "window.h"
-#include <assert.h>
+#include "helpers/sdl_hlprs.h"
+
+using namespace smns::sdl_hlprs;
 
 window::window(app* p_app, const std::string& title, int width, int height)
     : _app(p_app), _width(width), _height(height) {
   // Create a window
   _window = SDL_CreateWindow(title.data(), _width, _height, 0);
-  assert(_window && SDL_GetError());
+   check(_window);
 
   // Get the window surface
   _surface = SDL_GetWindowSurface(_window);
-  assert(_surface && SDL_GetError());
+  check(_surface);
 
   _mode = SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(_window));
-  assert(_mode && SDL_GetError());
+  check(_mode);
 }
 
 window::~window() {
