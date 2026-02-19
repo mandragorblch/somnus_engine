@@ -8,9 +8,10 @@
 #include <list>
 #include <string>
 #include <queue>
-#include "app/window.h"
 #include "app/audio.h"
-#include "obj/obj.h"
+
+struct window;
+struct obj;
 
 struct app {
   using clock = std::chrono::high_resolution_clock;

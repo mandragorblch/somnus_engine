@@ -1,6 +1,8 @@
 #include "app.h"
 #include "helpers/sdl_hlprs.h"
 #include <thread>
+#include "app/window.h"
+#include "obj/obj.h"
 
 using namespace std::chrono_literals;
 using namespace smns::sdl_hlprs;
@@ -42,7 +44,7 @@ void app::draw_frame() {
     SDL_FillSurfaceRect(surf, NULL, 0);
 
     for (obj* curr_obj : objs) {
-      curr_obj->draw(surf);
+      curr_obj->draw(curr_win);
     }
 
     SDL_UnlockSurface(surf);
@@ -133,8 +135,20 @@ void app::_callback_tick() {
         break;
 
       case SDL_EVENT_MOUSE_BUTTON_DOWN:
-        play_audio("LEGALIZENUCLEAR.wav");
+        // play_audio("LEGALIZENUCLEAR.wav");
+        {
+          auto* win = _windows.at(_event.window.windowID);
+          objs[0]->pos.x = map_to_screen_relative_width(static_cast<int>(_event.button.x), win);
+          objs[0]->pos.y = map_to_screen_relative_height(static_cast<int>(_event.button.y), win);
+        }
         break;
+
+        //TODO resizable windows
+        case SDL_EVENT_WINDOW_RESIZED:
+          auto* win = _windows.at(_event.window.windowID);
+          win->_width = _event.window.data1;
+          win->_height = _event.window.data2;
+          break;
     }
   }
 }

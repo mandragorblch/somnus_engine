@@ -58,9 +58,9 @@ int main() {
   //auto win2 = m_app.add_window(rnd_title(), 1000, 1000);
   //auto win3 = m_app.add_window(rnd_title(), 1000, 1000);
 
-  
 
-  heart m_heart(-0.5, 0.9, 2.6, 1, 0.4);
+
+  heart m_heart(0.05, 0.06, 3.9, 25, 1, 1);
   m_app.add_obj(&m_heart);
 
 

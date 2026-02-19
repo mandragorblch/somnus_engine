@@ -4,6 +4,9 @@
 #include "math/defs.h"
 #include "math/vec2.h"
 #include "visual/color.h"
+#include "app/window.h"
+
+struct window;
 
 struct obj {
  public:
@@ -20,5 +23,5 @@ struct obj {
   obj& operator=(obj&&) = default;
 
   // TODO math for calculating relative positions of existing windows
-  virtual void draw(SDL_Surface* surf) = 0;
+  virtual void draw(window* win) = 0;
 };

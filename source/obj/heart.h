@@ -12,8 +12,11 @@ struct heart : obj {
   real x0{};
   real y0{};
   real phi{};
+  real stretch{1_r};
   real x_scale{1_r};
   real y_scale{1_r};
+  real cos_phi = std::cos(phi);
+  real sin_phi = std::sin(phi);
 
   real top_bound{};
   real bottom_bound{};
@@ -22,7 +25,7 @@ struct heart : obj {
 
  public:
   // constructor
-  heart(real x0, real y0, real phi, real x_scale, real y_scale);
+  heart(real x0, real y0, real phi, real stretch = 1_r, real x_scale = 1_r, real y_scale = 1_r);
 
   // copy constructor
   heart(const heart&) = default;
@@ -41,5 +44,7 @@ struct heart : obj {
 
   void calc_bounds();
 
-  virtual void draw(SDL_Surface* surf) override;
+  void set_phi(real phi);
+
+  virtual void draw(window* win) override;
 };

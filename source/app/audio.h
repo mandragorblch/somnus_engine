@@ -22,7 +22,7 @@ constexpr int MAX_AUDIOSTREAMS_AMOUNT = 256;
 struct audio {
   using audio_stream_data = smns::sdl_hlprs::audio_stream_data;
   using stream_data_cntnr_t = std::vector<std::unique_ptr<audio_stream_data>>;
-  SDL_AudioDeviceID _devID;
+  SDL_AudioDeviceID _devID{};
 
   // TODO delete
   // std::vector<SDL_AudioStream*> _streams{};
@@ -30,16 +30,16 @@ struct audio {
   stream_data_cntnr_t _stream_datas_active{};
   stream_data_cntnr_t _stream_datas_free_pool{};
 
-  std::array<size_t, MAX_AUDIOSTREAMS_AMOUNT> finished_ring;
+  std::array<size_t, MAX_AUDIOSTREAMS_AMOUNT> finished_ring{};
   std::atomic<size_t> write_index = 0;
   std::atomic<size_t> read_index  = 0;
-  std::vector<size_t> to_remove;
+  std::vector<size_t> to_remove{};
 
   // dont touch, original audio file stored here
   Uint8* _audioBuf = nullptr;
 
   Uint32 _audioLen = 0;
-  SDL_AudioSpec _spec;
+  SDL_AudioSpec _spec{};
   // TODO delete
   // SDL_AudioStream* _last_stream_used = nullptr;
 

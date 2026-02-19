@@ -1,6 +1,31 @@
 #include "sdl_hlprs.h"
 
 #include "app/audio.h"
+#include "app/window.h"
+
+real smns::sdl_hlprs::map_to_screen_relative_height(int pix_coord,
+                                                    window* win) {
+  real res = pix_coord;
+  res /= win->_height;
+  res = 1_r - res;
+  return res;
+}
+
+real smns::sdl_hlprs::map_to_screen_relative_width(int pix_coord, window* win) {
+  real res = pix_coord;
+  res /= win->_width;
+  return res;
+}
+
+int smns::sdl_hlprs::crop_to_screen_height(int pix_coord, window* win) {
+  int res = std::min((std::max(pix_coord, 0)), win->_height - 1);
+  return res;
+}
+
+int smns::sdl_hlprs::crop_to_screen_width(int pix_coord, window* win) {
+  int res = std::min((std::max(pix_coord, 0)), win->_width - 1);
+  return res;
+}
 
 void smns::sdl_hlprs::check(bool success) {
   if (!success) {

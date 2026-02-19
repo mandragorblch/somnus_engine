@@ -2,69 +2,146 @@
 #include <algorithm>
 #include <cstdint>
 #include <type_traits>
+#include <array>
+#include <iostream>
 
 // first format - how it stored
 // second - how it being treated
-// BGRA_RGBA - stored like BGRA, but u put color_bases in RGBA
-enum class PIXEL_FORMAT { RGBA_RGBA, BGRA_RGBA };
+// BGRA_RGBA - stored like BGRA, but u put colors in RGBA
+enum class PXL_FRMT : uint8_t { RGBA_RGBA, BGRA_RGBA };
+
+enum class PXL_CHNL : uint8_t { RED, GREEN, BLUE, ALPHA };
+
+template<PXL_FRMT frmt>
+struct pixel_map;
+
+template<>
+struct pixel_map<PXL_FRMT::BGRA_RGBA> {
+    using r_indx = std::integral_constant<size_t, 2>;
+    using g_indx = std::integral_constant<size_t, 1>;
+    using b_indx = std::integral_constant<size_t, 0>;
+    using a_indx = std::integral_constant<size_t, 3>;
+};
+
+template<>
+struct pixel_map<PXL_FRMT::RGBA_RGBA> {
+    using r_indx = std::integral_constant<size_t, 0>;
+    using g_indx = std::integral_constant<size_t, 1>;
+    using b_indx = std::integral_constant<size_t, 2>;
+    using a_indx = std::integral_constant<size_t, 3>;
+};
+
+
 
 // white by default
-template <PIXEL_FORMAT frmt = PIXEL_FORMAT::BGRA_RGBA>
-struct color_base {
-  uint8_t data[4];
-  uint8_t& r = data[0];
-  uint8_t& g = data[1];
-  uint8_t& b = data[2];
-  uint8_t& a = data[3];
+template <PXL_FRMT frmt = PXL_FRMT::BGRA_RGBA>
+struct color {
+  std::array<uint8_t, 4> data;
+
+  //for gradient latches
+  //false - rising, true - decreasing
+  std::array<bool, 4> gradient_latches{false, false, false, false};
+
+  template<PXL_CHNL chnl_indx>
+  static constexpr size_t indx_of = []() {
+    // 'if constexpr' discards the non-matching branches at compile-time.
+    // No runtime cost. Pure constant folding.
+    if constexpr (chnl_indx == PXL_CHNL::RED) 
+        return pixel_map<frmt>::r_indx::value;
+    else if constexpr (chnl_indx == PXL_CHNL::GREEN) 
+        return pixel_map<frmt>::g_indx::value;
+    else if constexpr (chnl_indx == PXL_CHNL::BLUE) 
+        return pixel_map<frmt>::b_indx::value;
+    else if constexpr (chnl_indx == PXL_CHNL::ALPHA) 
+        return pixel_map<frmt>::a_indx::value;
+    else 
+        return size_t(-1); // Safety fallback
+  }(); // <--- Note the parenthesis! We call the lambda immediately.
+
+  auto r_ind() { return indx_of<PXL_CHNL::RED>; }
+  auto g_ind() { return indx_of<PXL_CHNL::GREEN>; }
+  auto b_ind() { return indx_of<PXL_CHNL::BLUE>; }
+  auto a_ind() { return indx_of<PXL_CHNL::ALPHA>; }
+
+  uint8_t& r() { return data[r_ind()]; };
+  uint8_t& g() { return data[g_ind()]; };
+  uint8_t& b() { return data[b_ind()]; };
+  uint8_t& a() { return data[a_ind()]; };
+
+  //sets all channels to 255 by default
+  color(uint8_t red = 255, uint8_t green = 255, uint8_t blue = 255,
+             uint8_t alpha = 255);
+
+  uint32_t get_rgba();
+  uint32_t get_bgra();
+
+  //yes, template. questions?
+  //makes smooth gradient from 0 to 255 and back
+  //chnl_ind - r/g/b/a channel
+  //use PXL_CHNL as chnl_indx
+  template<PXL_CHNL chnl>
+  void gradient_step() {
+    auto chnl_ind = indx_of<chnl>;
+    bool& latch = gradient_latches[chnl_ind];
+    auto& cur_col = data[chnl_ind];
+    if (latch) {
+      --cur_col;
+      if (cur_col == 0) {
+        latch = false;
+      }
+    } else {
+      ++cur_col;
+      if (cur_col == 255) {
+        latch = true;
+      }
+    }
+  }
+
+
 
   uint8_t& operator[](size_t index) { return data[index]; }
 
-  color_base(uint8_t r = 255, uint8_t g = 255, uint8_t b = 255,
-             uint8_t a = 255);
-
-  color_base(const color_base& other);
-
   template <typename real_t>
     requires(std::is_arithmetic_v<real_t>)
-  color_base operator*(real_t val) {
-    return color_base{static_cast<uint8_t>(val * r),
-                      static_cast<uint8_t>(val * g),
-                      static_cast<uint8_t>(val * b)};
+  color operator*(real_t val) {
+    return color{static_cast<uint8_t>(val * data[0]),
+                      static_cast<uint8_t>(val * data[1]),
+                      static_cast<uint8_t>(val * data[2])};
   }
 
   template <typename real_t>
     requires(std::is_arithmetic_v<real_t>)
-  color_base& operator*=(real_t val) {
-    r *= val;
-    g *= val;
-    b *= val;
+  color& operator*=(real_t val) {
+    data[0] *= val;
+    data[1] *= val;
+    data[2] *= val;
     return *this;
   }
 
-  color_base operator+(const color_base& other) {
-    return color_base{static_cast<uint8_t>(other.r + r),
-                      static_cast<uint8_t>(other.g + g),
-                      static_cast<uint8_t>(other.b + b)};
+  color operator+(const color& other) {
+    return color{static_cast<uint8_t>(other.data[0] + data[0]),
+                      static_cast<uint8_t>(other.data[1] + data[1]),
+                      static_cast<uint8_t>(other.data[2] + data[2])};
   }
 
   template <typename real_t>
     requires(std::is_arithmetic_v<real_t>)
-  color_base operator+(real_t val) {
-    return color_base{static_cast<uint8_t>(val + r),
-                      static_cast<uint8_t>(val + g),
-                      static_cast<uint8_t>(val + b)};
+  color operator+(real_t val) {
+    return color{static_cast<uint8_t>(val + data[0]),
+                      static_cast<uint8_t>(val + data[1]),
+                      static_cast<uint8_t>(val + data[2])};
   }
 
   template <typename real_t>
     requires(std::is_arithmetic_v<real_t>)
-  color_base operator+=(real_t val) {
-    r += val;
-    g += val;
-    b += val;
+  color operator+=(real_t val) {
+    data[0] += val;
+    data[1] += val;
+    data[2] += val;
     return *this;
   }
 
-  color_base& operator=(const color_base& other) {
+  color& operator=(const color& other) {
     reinterpret_cast<uint32_t&>(data[0]) =
         reinterpret_cast<const uint32_t&>(other.data[0]);
     return *this;
@@ -73,64 +150,45 @@ struct color_base {
   // clamped to 255
   template <typename real_t>
     requires(std::is_integral_v<real_t>)
-  color_base& operator=(real_t val) {
+  color& operator=(real_t val) {
     uint8_t ch_val = static_cast<uint8_t>(std::min(val, 255));
-    r = ch_val;
-    g = ch_val;
-    b = ch_val;
+    data[0] = ch_val;
+    data[1] = ch_val;
+    data[2] = ch_val;
     return *this;
   }
 
   // clamped to 1 and then turned to [0, 255] range
   template <typename real_t>
     requires(std::is_floating_point_v<real_t>)
-  color_base& operator=(real_t val) {
+  color& operator=(real_t val) {
     uint8_t ch_val = static_cast<uint8_t>(std::min(val, 1) * 255);
-    r = ch_val;
-    g = ch_val;
-    b = ch_val;
+    data[0] = ch_val;
+    data[1] = ch_val;
+    data[2] = ch_val;
     return *this;
   }
 
   void white() { *this = 255; }
   void black() { *this = 0; }
   void green() {
-    r = 0;
-    g = 255;
-    b = 0;
+    data[0] = 0;
+    data[1] = 255;
+    data[2] = 0;
   }
   void red() {
-    r = 255;
-    g = 0;
-    b = 0;
+    data[0] = 255;
+    data[1] = 0;
+    data[2] = 0;
   }
   void blue() {
-    r = 0;
-    g = 0;
-    b = 255;
+    data[0] = 0;
+    data[1] = 0;
+    data[2] = 255;
   }
   void purple() {
-    r = 255;
-    g = 0;
-    b = 255;
+    data[0] = 255;
+    data[1] = 0;
+    data[2] = 255;
   }
-};
-
-template <PIXEL_FORMAT frmt = PIXEL_FORMAT::BGRA_RGBA>
-struct color : color_base<frmt> {
-  
-  template<>
-  color(const color_base<frmt>& base);
-};
-
-template <>
-struct color<PIXEL_FORMAT::RGBA_RGBA> : color_base<PIXEL_FORMAT::RGBA_RGBA> {
-  uint32_t get_rgba();
-  uint32_t get_bgra();
-};
-
-template <>
-struct color<PIXEL_FORMAT::BGRA_RGBA> : color_base<PIXEL_FORMAT::BGRA_RGBA> {
-  uint32_t get_rgba();
-  uint32_t get_bgra();
 };

@@ -16,7 +16,7 @@ void audio_callback(void* userdata, SDL_AudioStream* stream,
 
   Sint16* audio_buff = reinterpret_cast<Sint16*>(p_audio->_audioBuf);
   size_t it = p_stream_data->_last_byte_it.load();
-  size_t i = 0;
+  int i = 0;
   //TODO change '/2' to actual size of data to know bytes
   int samples = additional_amount / 2;
   bool buffer_exhaust = false;
@@ -26,7 +26,8 @@ void audio_callback(void* userdata, SDL_AudioStream* stream,
        (buffer_exhaust = ((it + i) * 2 >= p_audio->_audioLen), !buffer_exhaust);
        ++i) {
     int32_t v = static_cast<int32_t>(audio_buff[it + i] * volume);
-    buffer[i] = static_cast<Sint16>(SDL_clamp(v, -32768, 32767));
+    buffer[i] = static_cast<Sint16>(
+        SDL_clamp(v, std::numeric_limits<Sint16>::min(), std::numeric_limits<Sint16>::max()));
   }
 
   p_stream_data->_last_byte_it.fetch_add(i);
