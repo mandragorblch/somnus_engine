@@ -2,17 +2,20 @@
 #include <expected>
 #include <system_error>
 #include <utility>
+#include <complex>
 
-namespace smns {
-namespace defs {
+namespace smns::defs {
 // alias for real type
-using real = long double;
+using real = double;
+
+using complex = std::complex<real>;
 
 enum class ParseError {
   None,
   NaN
 };
 
+namespace literals {
 consteval std::expected<real, ParseError> parse_at_compile_time(
     const char* buffer, size_t sz) {
   real _real{};
@@ -21,8 +24,7 @@ consteval std::expected<real, ParseError> parse_at_compile_time(
   for (; it < sz; ++it) {
     ch = buffer[it];
     if (ch == '.') break;
-    if (ch < '0' || ch > '9')
-      return std::unexpected(ParseError::NaN);
+    if (ch < '0' || ch > '9') return std::unexpected(ParseError::NaN);
     _real *= 10;
     _real += ch - '0';
   }
@@ -32,8 +34,7 @@ consteval std::expected<real, ParseError> parse_at_compile_time(
   real dig_pos = 1;
   for (; it < sz; ++it) {
     ch = buffer[it];
-    if (ch < '0' || ch > '9')
-      return std::unexpected(ParseError::NaN);
+    if (ch < '0' || ch > '9') return std::unexpected(ParseError::NaN);
     dig_pos *= 10;
     _real += (ch - '0') / dig_pos;
   }
@@ -48,5 +49,8 @@ consteval real operator""_r() {
   static_assert(res.has_value(), "NaN");
   return res.value();
 }
+
+consteval real operator""_r(unsigned long long val) { return static_cast<real>(val); }
+consteval real operator""_r(long double val) { return static_cast<real>(val); }
+}  // namespace literals
 }  // namespace defs
-}  // namespace smns

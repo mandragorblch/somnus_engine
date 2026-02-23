@@ -5,6 +5,8 @@
 
 #include "helpers/sdl_hlprs.h"
 
+using namespace smns::defs::literals;
+
 static real phase = 0_r;
 
 using namespace smns::sdl_hlprs;

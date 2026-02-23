@@ -13,8 +13,7 @@ void out(msg_ts&&... args) {
   (std::cout << ... << args) << '\n';
 }
 
-namespace smns {
-namespace sdl_hlprs {
+namespace smns::sdl_hlprs {
 
   //returns coords in pixels
 template<typename num_t = real>
@@ -97,4 +96,3 @@ struct audio_stream_data {
 };
 
 }  // namespace sdl_hlprs
-}  // namespace smns

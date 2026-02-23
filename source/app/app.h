@@ -14,6 +14,7 @@ struct window;
 struct obj;
 
 struct app {
+  using real = smns::defs::real;
   using clock = std::chrono::high_resolution_clock;
 
   SDL_Event _event{};
@@ -41,7 +42,7 @@ struct app {
   public:
   bool running = true;
 
-  app(float target_FPS, const std::string& audio_files_path, real _master_volume = 1.0_r);
+  app(float target_FPS, const std::string& audio_files_path, real _master_volume = real{1.0});
   ~app();
 
   auto add_window(const std::string& title, int width, int height)

@@ -2,19 +2,19 @@
 #include "math/defs.h"
 #include "obj/obj.h"
 
-using namespace smns::defs;
 // the heart object
 // defines as rotated by angle amd mirrored pparabola
 //
 struct heart : obj {
- private:
+ //private:
   using obj::obj;
+  using real = smns::defs::real;
   real x0{};
   real y0{};
   real phi{};
-  real stretch{1_r};
-  real x_scale{1_r};
-  real y_scale{1_r};
+  real stretch{1.0};
+  real x_scale{1.0};
+  real y_scale{1.0};
   real cos_phi = std::cos(phi);
   real sin_phi = std::sin(phi);
 
@@ -25,7 +25,7 @@ struct heart : obj {
 
  public:
   // constructor
-  heart(real x0, real y0, real phi, real stretch = 1_r, real x_scale = 1_r, real y_scale = 1_r);
+  heart(real x0, real y0, real phi, real stretch = real{1.0}, real x_scale = real{1.0}, real y_scale = real{1.0});
 
   // copy constructor
   heart(const heart&) = default;

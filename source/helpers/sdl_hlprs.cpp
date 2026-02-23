@@ -2,6 +2,9 @@
 
 #include "app/audio.h"
 #include "app/window.h"
+#include "math/defs.h"
+
+using namespace smns::defs::literals;
 
 real smns::sdl_hlprs::map_to_screen_relative_height(int pix_coord,
                                                     window* win) {

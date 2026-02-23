@@ -4,7 +4,6 @@
 #include "math/defs.h"
 #include "math/vec2.h"
 #include "visual/color.h"
-#include "app/window.h"
 
 struct window;
 
@@ -13,10 +12,10 @@ struct obj {
   color<> clr{};
   vec2<> pos{};
   vec2<> vel{};
-  real mass{1_r};
+  real mass{1.0};
 
   obj(const color<>& color = color<>{}, vec2<> pos = vec2<>{},
-      vec2<> vel = vec2<>{}, real mass = 1_r);
+      vec2<> vel = vec2<>{}, real mass = real{1.0});
   obj(const obj&) = default;
   obj& operator=(const obj&) = default;
   obj(obj&&) = default;

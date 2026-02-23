@@ -3,9 +3,11 @@
 #include <thread>
 #include "app/window.h"
 #include "obj/obj.h"
+#include "math/defs.h"
 
 using namespace std::chrono_literals;
 using namespace smns::sdl_hlprs;
+using namespace smns::defs;
 
 app::app(float target_FPS, const std::string& audio_files_path, real master_volume)
     : _trgt_FPS(target_FPS),

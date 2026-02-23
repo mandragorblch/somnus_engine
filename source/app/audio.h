@@ -9,17 +9,14 @@
 
 #include "math/defs.h"
 
-using namespace smns::defs;
-
-namespace smns {
-namespace sdl_hlprs {
+namespace smns::sdl_hlprs {
 struct audio_stream_data;
-}
 }
 
 constexpr int MAX_AUDIOSTREAMS_AMOUNT = 256;
 
 struct audio {
+  using real = smns::defs::real;
   using audio_stream_data = smns::sdl_hlprs::audio_stream_data;
   using stream_data_cntnr_t = std::vector<std::unique_ptr<audio_stream_data>>;
   SDL_AudioDeviceID _devID{};
@@ -50,7 +47,7 @@ struct audio {
   real* _p_master_volume = nullptr;
   //real _cur_volume{};
 
-  audio(const std::string& filename, real* p_master_volume, real volume = 1.0_r,
+  audio(const std::string& filename, real* p_master_volume, real volume = real{1.0},
         SDL_AudioDeviceID deviceID = SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK);
 
   ~audio();
