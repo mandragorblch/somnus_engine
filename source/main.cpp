@@ -1,6 +1,8 @@
 #include <chrono>
 #include <iostream>
 #include <random>
+#include <functional>
+#include <complex>
 #include "math/defs.h"
 #include "obj/heart.h"
 #include "app/app.h"
@@ -48,9 +50,27 @@ std::mt19937_64 RND(rd());
     return title;
   }
 
+  using real_t = float;
+  using complex = std::complex<real_t>;
+
+  real_t f_prime(const std::function<complex(complex)>& f, real_t x) {
+    real_t dx = 1e-20;
+    std::complex x_dx{x, dx};
+    auto res = f(x_dx);
+    return std::imag(res) / dx;
+  }
+
 int main() {
   using clock = std::chrono::high_resolution_clock;
-  app m_app(60, "res/wav/");
+
+
+  std::function<complex(complex)> f = [](complex x) { return std::sqrt(x); };
+  std::cout << f_prime(f, 1.f);
+
+
+
+  system("pause");
+  app m_app(24, "res/wav/");
 
   auto WHOA_IT = m_app.add_audio("LEGALIZENUCLEAR.wav", 0.3_r);
 
@@ -61,6 +81,7 @@ int main() {
 
 
   heart m_heart(0.05, 0.06, 3.9, 25, 1, 1);
+  m_heart.pos = {0.5, 0.5};
   m_app.add_obj(&m_heart);
 
 
