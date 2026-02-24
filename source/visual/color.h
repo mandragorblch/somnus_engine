@@ -112,9 +112,9 @@ struct color {
   template <typename real_t>
     requires(std::is_arithmetic_v<real_t>)
   color& operator*=(real_t val) {
-    data[0] *= val;
-    data[1] *= val;
-    data[2] *= val;
+    data[0] = static_cast<uint8_t>(data[0] * val);
+    data[1] = static_cast<uint8_t>(data[1] * val);
+    data[2] = static_cast<uint8_t>(data[2] * val);
     return *this;
   }
 

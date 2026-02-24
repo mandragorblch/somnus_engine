@@ -14,6 +14,11 @@ struct obj {
   vec2<> vel{};
   real mass{1.0};
 
+  real top_bound{};
+  real bottom_bound{};
+  real left_bound{};
+  real right_bound{};
+
   obj(const color<>& color = color<>{}, vec2<> pos = vec2<>{},
       vec2<> vel = vec2<>{}, real mass = real{1.0});
   obj(const obj&) = default;
@@ -23,4 +28,5 @@ struct obj {
 
   // TODO math for calculating relative positions of existing windows
   virtual void draw(window* win) = 0;
+  virtual void calc_bounds() = 0;
 };

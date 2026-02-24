@@ -64,7 +64,7 @@ int main() {
 
 
 
-  heart m_heart(0.05, 0.06, 3.9, 25, 1, 1);
+  heart<HEART_TYPES::PARABOLA> m_heart(0.05, 0.06, 3.9, 25, 1, 1);
   m_heart.pos = {0.5, 0.5};
   m_app.add_obj(&m_heart);
 

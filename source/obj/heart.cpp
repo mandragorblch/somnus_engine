@@ -7,11 +7,10 @@
 
 using namespace smns::defs::literals;
 
-static real phase = 0_r;
-
 using namespace smns::sdl_hlprs;
-// TODO rewrite sdl surface from bgr to rgb
-heart::heart(real x0, real y0, real phi, real stretch, real x_scale,
+
+#pragma region PARABOLA
+heart<HEART_TYPES::PARABOLA>::heart(real x0, real y0, real phi, real stretch, real x_scale,
              real y_scale)
     : obj(color<>({255, 100, 150})),
       x0(x0),
@@ -23,7 +22,7 @@ heart::heart(real x0, real y0, real phi, real stretch, real x_scale,
   calc_bounds();
 }
 
-void heart::calc_bounds() {
+void heart<HEART_TYPES::PARABOLA>::calc_bounds() {
   real cos_phi_sqrd = cos_phi * cos_phi;
   real sin_phi_sqrd = sin_phi * sin_phi;
 
@@ -50,14 +49,14 @@ void heart::calc_bounds() {
   left_bound = -right_bound;
 }
 
-void heart::set_phi(real phi) {
+void heart<HEART_TYPES::PARABOLA>::set_phi(real phi) {
   this->phi = phi;
   cos_phi = std::cos(phi);
   sin_phi = std::sin(phi);
 }
 
 // the surface must be locked
-void heart::draw(window* win) {
+void heart<HEART_TYPES::PARABOLA>::draw(window* win) {
   // TODO draw logic
   auto* surf = win->_surface;
   SDL_PixelFormat fmt = surf->format;
@@ -156,3 +155,8 @@ void heart::draw(window* win) {
   //}
   phase += 0.1;
 }
+#pragma endregion
+
+#pragma region CIRCLE_ATANH
+
+#pragma endregion
