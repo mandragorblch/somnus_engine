@@ -10,15 +10,13 @@ using namespace smns::defs::literals;
 using namespace smns::sdl_hlprs;
 
 #pragma region PARABOLA
-heart<HEART_TYPES::PARABOLA>::heart(real x0, real y0, real phi, real stretch, real x_scale,
-             real y_scale)
-    : obj(color<>({255, 100, 150})),
+heart<HEART_TYPES::PARABOLA>::heart(real x0, real y0, real phi, real stretch,
+                                    real x_scale, real y_scale)
+    : render_t(color<>({255, 100, 150}), x_scale, y_scale),
       x0(x0),
       y0(y0),
       phi(phi),
-      stretch(stretch),
-      x_scale(x_scale),
-      y_scale(y_scale) {
+      stretch(stretch) {
   calc_bounds();
 }
 
@@ -109,9 +107,9 @@ void heart<HEART_TYPES::PARABOLA>::draw(window* win) {
         pixls[curr_pix_y * (surf->pitch / 4) + curr_pix_x] =
         clr_copy.get_bgra();
         //outline
-        //if (std::abs(F_x_y) < 0.01) {
-        //  pixls[curr_pix_y * (surf->pitch / 4) + curr_pix_x] = 0xffffffff;
-        //}
+        if (std::abs(F_x_y) < 0.01) {
+          pixls[curr_pix_y * (surf->pitch / 4) + curr_pix_x] = 0xffffffff;
+        }
         //auto left_mirror = map_to_screen_width(-rel_x + pos.x, win);
         //remap to the center of symmetry, then mirror and then back to pos_px
         auto rel_x_px_right = curr_pix_x - pos_mapped.x;

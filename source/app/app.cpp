@@ -2,7 +2,7 @@
 #include "helpers/sdl_hlprs.h"
 #include <thread>
 #include "app/window.h"
-#include "obj/obj.h"
+#include "obj/base_objs/obj.h"
 #include "math/defs.h"
 
 using namespace std::chrono_literals;

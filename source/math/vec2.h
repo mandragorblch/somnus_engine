@@ -2,12 +2,11 @@
 #include <type_traits>
 #include "math/defs.h"
 
-using namespace smns::defs;
-
 //real defined in math/defs.h is default
-template <typename real_t = real>
+template <typename real_t = smns::defs::real>
   requires(std::is_arithmetic_v<real_t>)
 struct vec2 {
+  using real = smns::defs::real;
   real_t x{};
   real_t y{};
 

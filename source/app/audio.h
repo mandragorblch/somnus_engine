@@ -15,7 +15,8 @@ struct audio_stream_data;
 
 constexpr int MAX_AUDIOSTREAMS_AMOUNT = 256;
 
-struct audio {
+class audio {
+ public:
   using real = smns::defs::real;
   using audio_stream_data = smns::sdl_hlprs::audio_stream_data;
   using stream_data_cntnr_t = std::vector<std::unique_ptr<audio_stream_data>>;

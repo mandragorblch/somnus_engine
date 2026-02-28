@@ -10,15 +10,16 @@
 #include <queue>
 #include "app/audio.h"
 
-struct window;
-struct obj;
+class window;
+class obj;
 
-struct app {
+class app {
+ public:
   using real = smns::defs::real;
   using clock = std::chrono::high_resolution_clock;
 
   SDL_Event _event{};
-  std::map<SDL_WindowID, struct window*> _windows{};
+  std::map<SDL_WindowID, class window*> _windows{};
   std::queue<SDL_WindowID> _windows_to_close{};
 
   std::map<std::string, audio*> _audios{};
@@ -39,7 +40,6 @@ struct app {
   //vec2<int> _resolution{};
   //real _aspect_ratio{};
 
-  public:
   bool running = true;
 
   app(float target_FPS, const std::string& audio_files_path, real _master_volume = real{1.0});

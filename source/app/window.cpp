@@ -36,7 +36,7 @@ vec2<> window::get_win_pos_rel() {
   return pos_rel;
 }
 
-real window::get_aspect_ratio() {
+::smns::defs::real window::get_aspect_ratio() {
   real aspect_ratio = static_cast<real>(_mode->w) / _mode->h;
 
   return aspect_ratio;

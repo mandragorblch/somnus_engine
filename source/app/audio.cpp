@@ -20,7 +20,7 @@ void audio_callback(void* userdata, SDL_AudioStream* stream,
   //TODO change '/2' to actual size of data to know bytes
   int samples = additional_amount / 2;
   bool buffer_exhaust = false;
-  real volume = p_audio->_volume * (*(p_audio->_p_master_volume));
+  smns::defs::real volume = p_audio->_volume * (*(p_audio->_p_master_volume));
   for (;
        (i < samples) &&
        (buffer_exhaust = ((it + i) * 2 >= p_audio->_audioLen), !buffer_exhaust);

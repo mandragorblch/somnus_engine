@@ -5,46 +5,49 @@
 #include "math/defs.h"
 
 using namespace smns::defs::literals;
+using real = smns::defs::real;
 
-real smns::sdl_hlprs::map_to_screen_relative_height(int pix_coord,
-                                                    window* win) {
+namespace smns::sdl_hlprs {
+real map_to_screen_relative_height(int pix_coord, window* win) {
   real res = pix_coord;
   res /= win->_height;
   res = 1_r - res;
   return res;
 }
 
-real smns::sdl_hlprs::map_to_screen_relative_width(int pix_coord, window* win) {
+real map_to_screen_relative_width(int pix_coord, window* win) {
   real res = pix_coord;
   res /= win->_width;
   return res;
 }
 
-int smns::sdl_hlprs::crop_to_screen_height(int pix_coord, window* win) {
+int crop_to_screen_height(int pix_coord, window* win) {
   int res = std::min((std::max(pix_coord, 0)), win->_height - 1);
   return res;
 }
 
-int smns::sdl_hlprs::crop_to_screen_width(int pix_coord, window* win) {
+int crop_to_screen_width(int pix_coord, window* win) {
   int res = std::min((std::max(pix_coord, 0)), win->_width - 1);
   return res;
 }
 
-void smns::sdl_hlprs::check(bool success) {
+void check(bool success) {
   if (!success) {
     std::cerr << SDL_GetError();
   }
 }
 
-smns::sdl_hlprs::audio_stream_data::audio_stream_data(
-    SDL_AudioStream* p_stream, uint64_t* p_streams_playing,
-    uint64_t* p_streams_existing, audio* p_audio)
+audio_stream_data::audio_stream_data(SDL_AudioStream* p_stream,
+                                     uint64_t* p_streams_playing,
+                                     uint64_t* p_streams_existing,
+                                     audio* p_audio)
     : _p_stream(p_stream),
       _p_streams_playing(p_streams_playing),
       _p_streams_existing(p_streams_existing),
       _p_audio(p_audio) {}
 
-smns::sdl_hlprs::audio_stream_data::~audio_stream_data() {
+audio_stream_data::~audio_stream_data() {
   check(SDL_PauseAudioStreamDevice(_p_stream));
   SDL_DestroyAudioStream(_p_stream);
 }
+}  // namespace smns::sdl_hlprs

@@ -4,8 +4,10 @@
 #include "app/app.h"
 #include "math/vec2.h"
 
-struct window {
-  struct app* _app = nullptr;
+class window {
+ public:
+  using real = smns::defs::real;
+  class app* _app = nullptr;
   SDL_Window* _window = nullptr;
   SDL_Surface* _surface = nullptr;
   const SDL_DisplayMode* _mode = nullptr;
