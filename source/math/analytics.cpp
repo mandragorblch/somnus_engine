@@ -32,6 +32,7 @@ real newton_solver_complex(
 
   return x;
 }
+
 real newton_solver_complex(const std::function<complex(complex)>& f,
                            const real guess, const real precision,
                            const real iteration_max) {

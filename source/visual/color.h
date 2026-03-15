@@ -151,7 +151,7 @@ struct color {
   template <typename real_t>
     requires(std::is_integral_v<real_t>)
   color& operator=(real_t val) {
-    uint8_t ch_val = static_cast<uint8_t>(std::min(val, 255));
+    uint8_t ch_val = static_cast<uint8_t>(std::min(static_cast<uint8_t>(val), static_cast<uint8_t>(255)));
     data[0] = ch_val;
     data[1] = ch_val;
     data[2] = ch_val;

@@ -54,7 +54,7 @@ std::mt19937_64 RND(rd());
 int main() {
   using clock = std::chrono::high_resolution_clock;
 
-  app m_app(24, "res/wav/");
+  app m_app(144, "res/wav/");
 
   auto WHOA_IT = m_app.add_audio("LEGALIZENUCLEAR.wav", 0.3_r);
 

@@ -7,7 +7,7 @@
 #include "app/window.h"
 #include "math/defs.h"
 
-struct audio;
+class audio;
 
 template <typename... msg_ts>
 void out(msg_ts&&... args) {
@@ -20,7 +20,7 @@ namespace smns::sdl_hlprs {
 template<typename num_t = ::smns::defs::real>
   requires(std::is_arithmetic_v<num_t>)
 int map_to_screen_width(num_t rel_coord, window* win) {
-  int res = std::min(static_cast<int>(win->_width * rel_coord), win->_width - 1);
+  int res = static_cast<int>(win->_width * rel_coord);
   return res;
 }
 
@@ -28,8 +28,7 @@ int map_to_screen_width(num_t rel_coord, window* win) {
 template<typename num_t = ::smns::defs::real>
   requires(std::is_arithmetic_v<num_t>)
 int map_to_screen_height(num_t rel_coord, window* win) {
-  int res = std::min(static_cast<int>(win->_height * (static_cast<num_t>(1) - rel_coord)),
-                          win->_height - 1);
+  int res = static_cast<int>(win->_height * (static_cast<num_t>(1) - rel_coord));
   return res;
 }
 
