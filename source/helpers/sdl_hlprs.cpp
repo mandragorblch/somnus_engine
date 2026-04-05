@@ -8,6 +8,7 @@ using namespace smns::defs::literals;
 using real = smns::defs::real;
 
 namespace smns::sdl_hlprs {
+
 real map_to_screen_relative_height(int pix_coord, window* win) {
   real res = pix_coord;
   res /= win->_height;

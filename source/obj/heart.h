@@ -1,6 +1,7 @@
 #pragma once
 #include "math/defs.h"
 #include "obj/base_objs/renderer.h"
+#include <functional>
 
 enum class HEART_TYPES : uint8_t {
   PARABOLA,
@@ -26,10 +27,12 @@ class heart<HEART_TYPES::PARABOLA> : public renderer<RENDER_TYPE::ANALYTICAL, he
   real y0{};
   real phi{};
   real stretch{1.0};
-  real phase{0.0};
+  real phase{};
   real cos_phi = std::cos(phi);
   real sin_phi = std::sin(phi);
+  
 
+  real func(real x, real y);
  
   // constructor
   heart(real x0, real y0, real phi, real stretch = real{1.0}, real x_scale = real{1.0}, real y_scale = real{1.0});

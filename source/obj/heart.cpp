@@ -2,17 +2,26 @@
 
 #include <cmath>
 #include <cstdint>
+#include "math/analytics.h"
 
 #include "helpers/sdl_hlprs.h"
 
 using namespace smns::defs::literals;
-
 using namespace smns::sdl_hlprs;
+using real = smns::defs::real;
 
 #pragma region PARABOLA
+real heart<HEART_TYPES::PARABOLA>::func(real x, real y) { 
+      auto a = (x - x0) * cos_phi - (y - y0) * sin_phi;
+      a *= a * stretch;
+      auto b = (x - x0) * sin_phi + (y - y0) * cos_phi;
+      return a - b;
+}
+
 heart<HEART_TYPES::PARABOLA>::heart(real x0, real y0, real phi, real stretch,
                                     real x_scale, real y_scale)
-    : render_t(color<>({255, 100, 150}), x_scale, y_scale),
+    : render_t(color<>({255, 100, 150}),
+               x_scale, y_scale),
       x0(x0),
       y0(y0),
       phi(phi),
@@ -24,18 +33,7 @@ void heart<HEART_TYPES::PARABOLA>::calc_bounds() {
   real cos_phi_sqrd = cos_phi * cos_phi;
   real sin_phi_sqrd = sin_phi * sin_phi;
 
-  // real mult = stretch / 4_r;
-
-  // top_bound = y0 - mult * sin_phi_sqrd / cos_phi;
-  // real a = stretch * cos_phi;
-  // bottom_bound =
-  //     (a - std::sqrt(a * a - 4_r * x0 * stretch * sin_phi)) / (a *
-  //     sin_phi_sqrd) - x0 * cos_phi / sin_phi + y0;
-
-  // right_bound = x0 - mult * cos_phi_sqrd / sin_phi;
-  // left_bound = -right_bound;
-
-  real mult = (1_r / 4_r) / stretch;
+  real mult = 0.25_r / stretch;
 
   top_bound = y0 - mult * sin_phi_sqrd / cos_phi;
   real a = 2_r * stretch * sin_phi;
@@ -100,18 +98,11 @@ void heart<HEART_TYPES::PARABOLA>::draw(window* win) {
     for (auto curr_pix_y = bottom_bound_cropped_mapped;
          curr_pix_y < top_bound_cropped_mapped; ++curr_pix_y) {
       real rel_y = map_to_screen_relative_height(curr_pix_y, win) - pos.y;
-      auto x = (rel_x - x0) * cos_phi - (rel_y - y0) * sin_phi;
-      x *= x * stretch;
-      auto y = (rel_x - x0) * sin_phi + (rel_y - y0) * cos_phi;
-      auto F_x_y = x - y;
-      bool is_inside = F_x_y < 0;
+      auto F_x_y = func(rel_x, rel_y);
+      bool is_inside = func(rel_x, rel_y) < 0;
       if (is_inside) {
         color res_color = clr;
          res_color *= std::abs(std::sin(std::pow(F_x_y * 60, 2) + phase));
-        //outline
-        if (std::abs(F_x_y) < 0.01) {
-          res_color = 0xffffffff;
-        }
         //auto left_mirror = map_to_screen_width(-rel_x + pos.x, win);
         //remap to the center of symmetry, then mirror and then back to pos_px
         auto rel_x_px_right = curr_pix_x - pos_mapped.x;
