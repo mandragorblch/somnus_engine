@@ -35,7 +35,7 @@ struct pixel_map<PXL_FRMT::RGBA_RGBA> {
 
 // white by default
 template <PXL_FRMT frmt = PXL_FRMT::BGRA_RGBA>
-struct color {
+struct color_t {
   std::array<uint8_t, 4> data;
 
   //for gradient latches
@@ -69,7 +69,7 @@ struct color {
   uint8_t& a() { return data[a_ind()]; };
 
   //sets all channels to 255 by default
-  color(uint8_t red = 255, uint8_t green = 255, uint8_t blue = 255,
+  color_t(uint8_t red = 255, uint8_t green = 255, uint8_t blue = 255,
              uint8_t alpha = 255);
 
   uint32_t get_rgba();
@@ -103,45 +103,45 @@ struct color {
 
   template <typename real_t>
     requires(std::is_arithmetic_v<real_t>)
-  color operator*(real_t val) {
-    return color{static_cast<uint8_t>(val * data[0]),
+  color_t operator*(real_t val) {
+    return color_t{static_cast<uint8_t>(val * data[0]),
                       static_cast<uint8_t>(val * data[1]),
                       static_cast<uint8_t>(val * data[2])};
   }
 
   template <typename real_t>
     requires(std::is_arithmetic_v<real_t>)
-  color& operator*=(real_t val) {
+  color_t& operator*=(real_t val) {
     data[0] = static_cast<uint8_t>(data[0] * val);
     data[1] = static_cast<uint8_t>(data[1] * val);
     data[2] = static_cast<uint8_t>(data[2] * val);
     return *this;
   }
 
-  color operator+(const color& other) {
-    return color{static_cast<uint8_t>(other.data[0] + data[0]),
+  color_t operator+(const color_t& other) {
+    return color_t{static_cast<uint8_t>(other.data[0] + data[0]),
                       static_cast<uint8_t>(other.data[1] + data[1]),
                       static_cast<uint8_t>(other.data[2] + data[2])};
   }
 
   template <typename real_t>
     requires(std::is_arithmetic_v<real_t>)
-  color operator+(real_t val) {
-    return color{static_cast<uint8_t>(val + data[0]),
+  color_t operator+(real_t val) {
+    return color_t{static_cast<uint8_t>(val + data[0]),
                       static_cast<uint8_t>(val + data[1]),
                       static_cast<uint8_t>(val + data[2])};
   }
 
   template <typename real_t>
     requires(std::is_arithmetic_v<real_t>)
-  color operator+=(real_t val) {
+  color_t operator+=(real_t val) {
     data[0] += val;
     data[1] += val;
     data[2] += val;
     return *this;
   }
 
-  color& operator=(const color& other) {
+  color_t& operator=(const color_t& other) {
     reinterpret_cast<uint32_t&>(data[0]) =
         reinterpret_cast<const uint32_t&>(other.data[0]);
     return *this;
@@ -150,7 +150,7 @@ struct color {
   // clamped to 255
   template <typename real_t>
     requires(std::is_integral_v<real_t>)
-  color& operator=(real_t val) {
+  color_t& operator=(real_t val) {
     uint8_t ch_val = static_cast<uint8_t>(std::min(static_cast<uint8_t>(val), static_cast<uint8_t>(255)));
     data[0] = ch_val;
     data[1] = ch_val;
@@ -161,7 +161,7 @@ struct color {
   // clamped to 1 and then turned to [0, 255] range
   template <typename real_t>
     requires(std::is_floating_point_v<real_t>)
-  color& operator=(real_t val) {
+  color_t& operator=(real_t val) {
     uint8_t ch_val = static_cast<uint8_t>(std::min(val, 1) * 255);
     data[0] = ch_val;
     data[1] = ch_val;

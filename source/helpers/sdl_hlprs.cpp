@@ -2,32 +2,46 @@
 
 #include "app/audio.h"
 #include "app/window.h"
-#include "math/defs.h"
+#include "smns/defs.h"
 
 using namespace smns::defs::literals;
 using real = smns::defs::real;
 
 namespace smns::sdl_hlprs {
 
-real map_to_screen_relative_height(int pix_coord, window* win) {
+int flip_y(int pix_coord, window_t* win) {
+  return (win->_height - 1) - pix_coord;
+}
+
+int flip_x(int pix_coord, window_t* win) {
+  return (win->_width - 1) - pix_coord;
+}
+
+real map_to_screen_relative_height_flip(int pix_coord, window_t* win) {
   real res = pix_coord;
-  res /= win->_height;
+  res /= (win->_height - 1);
   res = 1_r - res;
   return res;
 }
 
-real map_to_screen_relative_width(int pix_coord, window* win) {
+real map_to_screen_relative_height(int pix_coord, window_t* win) {
   real res = pix_coord;
-  res /= win->_width;
+  res /= (win->_height - 1);
   return res;
 }
 
-int crop_to_screen_height(int pix_coord, window* win) {
+real map_to_screen_relative_width(int pix_coord, window_t* win) {
+  real res = pix_coord;
+  res /= (win->_width - 1);
+  return res;
+}
+
+int crop_to_screen_height(int pix_coord, window_t* win) {
   int res = std::min((std::max(pix_coord, 0)), win->_height - 1);
   return res;
 }
 
-int crop_to_screen_width(int pix_coord, window* win) {
+int crop_to_screen_width(int pix_coord, window_t* win) {
   int res = std::min((std::max(pix_coord, 0)), win->_width - 1);
   return res;
 }

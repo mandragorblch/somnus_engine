@@ -7,7 +7,7 @@
 #include <array>
 #include <list>
 
-#include "math/defs.h"
+#include "smns/defs.h"
 
 namespace smns::sdl_hlprs {
 struct audio_stream_data;

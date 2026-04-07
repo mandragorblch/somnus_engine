@@ -3,7 +3,7 @@
 #include <thread>
 #include "app/window.h"
 #include "obj/base_objs/obj.h"
-#include "math/defs.h"
+#include "smns/defs.h"
 
 using namespace std::chrono_literals;
 using namespace smns::sdl_hlprs;
@@ -31,7 +31,7 @@ app::~app() {}
 
 auto app::add_window(const std::string& title, int width, int height)
     -> decltype(_windows)::iterator {
-  window* new_win = new window(this, title, width, height);
+  window_t* new_win = new window_t(this, title, width, height);
   SDL_WindowID win_id = SDL_GetWindowID(new_win->_window);
   auto [iter, is_inserted] = _windows.insert({win_id, new_win});
   return iter;
@@ -100,10 +100,26 @@ void app::tick() {
 //wait till frame time given by FPS
 void app::_wait_next_frame() {
   while (clock::now() - _FPStimer < _trgt_frame_time);
+
+  //optimized waiting
   /*auto time_elapsed = clock::now() - _FPStimer;
   if (time_elapsed < _trgt_frame_time)
     std::this_thread::sleep_for(_trgt_frame_time - (clock::now() - _FPStimer));*/
-  std::cout << '\r' << (1s / (clock::now() - _FPStimer));
+
+  //fps print
+  ++FPS_counter;
+  if ((clock::now() - _FPS_latch) >= 1s) {
+    //clear line before printing
+    std::cout << "\r\033[K" << FPS_counter;
+    _FPS_latch = clock::now();
+
+    FPS_counter = 0;
+    return;
+  }
+
+  //estimated fps based on frametime
+  //std::cout << '\r' << (1s / (clock::now() - _FPStimer));
+
   _FPStimer = clock::now();
 }
 
@@ -141,7 +157,7 @@ void app::_callback_tick() {
         {
           auto* win = _windows.at(_event.window.windowID);
           objs[0]->pos.x = map_to_screen_relative_width(static_cast<int>(_event.button.x), win);
-          objs[0]->pos.y = map_to_screen_relative_height(static_cast<int>(_event.button.y), win);
+          objs[0]->pos.y = map_to_screen_relative_height_flip(static_cast<int>(_event.button.y), win);
         }
         break;
 

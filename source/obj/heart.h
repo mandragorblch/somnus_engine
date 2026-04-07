@@ -1,5 +1,5 @@
 #pragma once
-#include "math/defs.h"
+#include "smns/defs.h"
 #include "obj/base_objs/renderer.h"
 #include <functional>
 
@@ -30,12 +30,13 @@ class heart<HEART_TYPES::PARABOLA> : public renderer<RENDER_TYPE::ANALYTICAL, he
   real phase{};
   real cos_phi = std::cos(phi);
   real sin_phi = std::sin(phi);
+  std::vector<int> SDF_map; 
   
 
   real func(real x, real y);
  
   // constructor
-  heart(real x0, real y0, real phi, real stretch = real{1.0}, real x_scale = real{1.0}, real y_scale = real{1.0});
+  heart(window_t* win, real x0, real y0, real phi, real stretch = real{1.0}, real x_scale = real{1.0}, real y_scale = real{1.0});
 
   // copy constructor
   heart(const heart&) = default;
@@ -56,7 +57,7 @@ class heart<HEART_TYPES::PARABOLA> : public renderer<RENDER_TYPE::ANALYTICAL, he
 
   void set_phi(real phi);
 
-  virtual void draw(window* win) override;
+  virtual void draw(window_t* win) override;
 };
 
 
@@ -94,5 +95,5 @@ class heart<HEART_TYPES::PARABOLA> : public renderer<RENDER_TYPE::ANALYTICAL, he
 //
 //  void set_phi(real phi);
 //
-//  void draw(window* win);
+//  void draw(window_t* win);
 //};

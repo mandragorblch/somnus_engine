@@ -2,21 +2,26 @@
 #include <SDL3/SDL.h>
 #include <iostream>
 #include "app/app.h"
-#include "math/vec2.h"
+#include "smns/math/vec2.h"
 
-class window {
+class window_t {
  public:
   using real = smns::defs::real;
   class app* _app = nullptr;
   SDL_Window* _window = nullptr;
   SDL_Surface* _surface = nullptr;
   const SDL_DisplayMode* _mode = nullptr;
+
   int _width;
   int _height;
+  real dy;
+  real dx;
 
-  window(app* p_app, const std::string& title, int width, int height);
+  void window_resized_callback();
 
-  ~window();
+  window_t(app* p_app, const std::string& title, int width, int height);
+
+  ~window_t();
 
 
   vec2<int> get_win_pos_pix();

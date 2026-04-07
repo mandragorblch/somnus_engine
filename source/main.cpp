@@ -3,10 +3,10 @@
 #include <random>
 #include <functional>
 #include <complex>
-#include "math/defs.h"
+#include "smns/defs.h"
 #include "obj/heart.h"
 #include "app/app.h"
-#include "math/analytics.h"
+#include "smns/math/analytics.h"
 
 
 using namespace smns::defs::literals;
@@ -54,7 +54,7 @@ std::mt19937_64 RND(rd());
 int main() {
   using clock = std::chrono::high_resolution_clock;
 
-  app m_app(144, "res/wav/");
+  app m_app(9999, "res/wav/");
 
   auto WHOA_IT = m_app.add_audio("LEGALIZENUCLEAR.wav", 0.3_r);
 
@@ -64,7 +64,7 @@ int main() {
 
 
 
-  heart<HEART_TYPES::PARABOLA> m_heart(0.05, 0.06, 3.9, 25, 1, 1);
+  heart<HEART_TYPES::PARABOLA> m_heart(win1->second, 0.05, 0.06, 3.9, 25, 1, 1);
   m_heart.pos = {0.5, 0.5};
   m_app.add_obj(&m_heart);
 

@@ -2,8 +2,8 @@
 
 #include <cmath>
 #include <cstdint>
-#include "math/analytics.h"
 
+#include "smns/math/analytics.h"
 #include "helpers/sdl_hlprs.h"
 
 using namespace smns::defs::literals;
@@ -18,15 +18,27 @@ real heart<HEART_TYPES::PARABOLA>::func(real x, real y) {
       return a - b;
 }
 
-heart<HEART_TYPES::PARABOLA>::heart(real x0, real y0, real phi, real stretch,
+heart<HEART_TYPES::PARABOLA>::heart(window_t* win, real x0, real y0, real phi, real stretch,
                                     real x_scale, real y_scale)
-    : render_t(color<>({255, 100, 150}),
+    : render_t(color_t<>({255, 100, 150}),
                x_scale, y_scale),
       x0(x0),
       y0(y0),
       phi(phi),
       stretch(stretch) {
   calc_bounds();
+  
+  //TODO do i need a ceil?
+  SDF_map.resize(std::ceil((top_bound - bottom_bound) * win->_height));
+  real dy = 1_r / win->_height;
+  real y = top_bound;
+  for (int i = SDF_map.size(); i-- > 0; ) {
+    auto dist_x = smns::analytic::newton_solver_const_y(
+        [&](real x, real y) { return func(x, y); }, 0, y);
+    if (dist_x <= 0) break;
+    SDF_map[i] = map_to_screen_width(dist_x, win) + 1;
+    y -= dy;
+  }
 }
 
 void heart<HEART_TYPES::PARABOLA>::calc_bounds() {
@@ -52,71 +64,133 @@ void heart<HEART_TYPES::PARABOLA>::set_phi(real phi) {
 }
 
 // the surface must be locked
-void heart<HEART_TYPES::PARABOLA>::draw(window* win) {
-  // TODO draw logic
+void heart<HEART_TYPES::PARABOLA>::draw(window_t* win) {
   auto* surf = win->_surface;
   SDL_PixelFormat fmt = surf->format;
   auto details = SDL_GetPixelFormatDetails(fmt);
   check(details);
-  auto* pixls = reinterpret_cast<uint32_t*>(surf->pixels);
+  auto* pixels = reinterpret_cast<uint32_t*>(surf->pixels);
+  auto pitch = surf->pitch / sizeof(uint32_t);
 
-  // auto top_bound_croped     = crop_to_screen(top_bound + pos.y);
-  // auto bottom_bound_croped  = crop_to_screen(bottom_bound + pos.y);
-  // auto right_bound_croped   = crop_to_screen(right_bound + pos.x);
-  // auto left_bound_croped    = crop_to_screen(left_bound + pos.x);
+  auto top_cropped_world = crop(top_bound + pos.y);
+  auto bottom_cropped_world = crop(bottom_bound + pos.y);
+  auto right_cropped_world = crop(right_bound + pos.x);
+  auto left_cropped_world = crop(left_bound + pos.x);
 
-  auto top_bound_cropped = crop_to_screen(top_bound + pos.y);
-  auto bottom_bound_cropped = crop_to_screen(bottom_bound + pos.y);
-  auto right_bound_cropped = crop_to_screen(right_bound + pos.x);
-  bool right_is_cropped = right_bound_cropped < right_bound + pos.x;
-  auto left_bound_cropped = crop_to_screen(left_bound + pos.x);
-  bool left_is_cropped = left_bound_cropped > left_bound + pos.y;
+  auto top_cropped = top_cropped_world - pos.y;
+  auto bottom_cropped = bottom_cropped_world - pos.y;
+  auto right_cropped = right_cropped_world - pos.x;
+  auto left_cropped = left_cropped_world - pos.x;
 
-  // RENDERS GO UPSIDE DOWN
-  int bottom_bound_cropped_mapped =
-      map_to_screen_height(top_bound_cropped, win);
-  int top_bound_cropped_mapped =
-      map_to_screen_height(bottom_bound_cropped, win);
-  int right_bound_cropped_mapped =
-      map_to_screen_width(right_bound_cropped, win);
-  int left_bound_cropped_mapped = map_to_screen_width(left_bound_cropped, win);
+  auto top_cropped_mapped_relative = map_to_screen_height(top_cropped, win);
+  auto bottom_cropped_mapped_relative = map_to_screen_height(bottom_cropped, win);
+  auto right_cropped_mapped_relative = map_to_screen_height(right_cropped, win);
+  auto left_cropped_mapped_relative = map_to_screen_height(left_cropped, win);
 
-  auto pos_cropped = crop_to_screen(pos);
-  auto pos_mapped = map_to_screen(pos, win);
-  auto pos_cropped_mapped = map_to_screen(pos_cropped, win);
+  auto bottom_cropped_mapped_world =
+      map_to_screen_height(bottom_cropped_world, win);
+  auto top_cropped_mapped_world =
+      map_to_screen_height(top_cropped_world, win);
+  auto right_cropped_mapped_world =
+      map_to_screen_width(right_cropped_world, win);
+  auto left_cropped_mapped_world =
+      map_to_screen_width(left_cropped_world, win);
 
-  //TODO remake, does not have any mathematical sense, because its in absolute position
-  //make bounds check in relative coords
-  auto max_bound_cropped =
-      std::max(right_bound_cropped, std::abs(left_bound_cropped - pos.x) + pos.x);
-  auto max_bound_cropped_mapped = map_to_screen_width(max_bound_cropped, win);
+  auto pos_cropped_mapped = map_to_screen_size(crop(pos), win);
+  auto pos_mapped = map_to_screen_size(pos, win);
 
-  //TODO optimize
-   for (auto curr_pix_x = max_bound_cropped_mapped;
-       curr_pix_x-- > pos_cropped_mapped.x; ) {
-    real rel_x = map_to_screen_relative_width(curr_pix_x, win) - pos.x;
-    for (auto curr_pix_y = bottom_bound_cropped_mapped;
-         curr_pix_y < top_bound_cropped_mapped; ++curr_pix_y) {
-      real rel_y = map_to_screen_relative_height(curr_pix_y, win) - pos.y;
-      auto F_x_y = func(rel_x, rel_y);
-      bool is_inside = func(rel_x, rel_y) < 0;
-      if (is_inside) {
-        color res_color = clr;
-         res_color *= std::abs(std::sin(std::pow(F_x_y * 60, 2) + phase));
-        //auto left_mirror = map_to_screen_width(-rel_x + pos.x, win);
-        //remap to the center of symmetry, then mirror and then back to pos_px
-        auto rel_x_px_right = curr_pix_x - pos_mapped.x;
-        auto rel_x_px_left = -rel_x_px_right;
-        auto left_mirror = rel_x_px_left + pos_mapped.x;
-        if (curr_pix_x < win->_width) {
-          pixls[curr_pix_y * (surf->pitch / 4) + curr_pix_x] =
-              res_color.get_bgra();
-        }
-        if (left_mirror >= 0 && left_mirror < win->_width) {
-          pixls[curr_pix_y * (surf->pitch / 4) + left_mirror] = res_color.get_bgra();
-        }
+  auto r = std::abs(right_cropped);
+  auto l = std::abs(left_cropped);
+  auto min_v = std::min(r, l);
+  auto max_v = std::max(r, l);
+
+  int max_cropped_mapped = map_to_screen_width(max_v, win);
+
+  real x_begin;
+  if (right_cropped < 0)
+    x_begin = -right_cropped;
+  else if (left_cropped > 0)
+    x_begin = left_cropped;
+  else
+    x_begin = 0;
+  auto y = top_cropped;
+  auto x = x_begin;
+
+  // TODO optimize
+  //for (auto curr_pix_y = bottom_cropped_mapped;
+  //     curr_pix_y < top_cropped_mapped; ++curr_pix_y) {
+  //  auto* row = &pixels[curr_pix_y * pitch + pos_mapped.x];
+  //  absolute_x = absolute_x_begin;
+  //  for (auto curr_pix_x = max_cropped_mapped;
+  //       curr_pix_x-- > pos_cropped_mapped.x;) {
+  //    auto F_x_y = func(absolute_x, absolute_y);
+  //    bool is_inside = F_x_y < 0;
+
+  //    absolute_x -= win->dx;
+  //    //check if its inside and if not, continue
+  //    if (F_x_y >= 0) continue;
+
+  //    color_t res_color = color;
+  //    //res_color *= std::abs(std::sin(std::pow(F_x_y * 60, 2) + phase));
+  //    auto bgra = res_color.get_bgra();
+
+  //    //distance between current x and center x
+  //    auto dist = curr_pix_x - pos_mapped.x;
+  //    //right half
+  //    if (curr_pix_x < win->_width) {
+  //      row[dist] = bgra;
+  //    }
+  //    //left half
+  //    auto left = pos_mapped.x - 2 * dist;
+  //    if (left >= 0 && left < win->_width) {
+  //      row[-dist] = bgra;
+  //    }
+  //  }
+  //  absolute_y += win->dy;
+  //}
+  int curr_pix_y = top_cropped_mapped_world;
+    for (int curr_rel_pix_y = top_cropped_mapped_relative;
+       curr_rel_pix_y > bottom_cropped_mapped_relative; --curr_rel_pix_y) {
+    
+    auto* row = &pixels[flip_y(curr_pix_y, win) * pitch + pos_cropped_mapped.x];
+    --curr_pix_y;
+    auto x_skip = SDF_map[curr_rel_pix_y - bottom_cropped_mapped_relative];
+    x = x_begin + static_cast<real>(x_skip) / (win->_width - 1);
+    bool was_inside = false;
+    for (int curr_pix_x = x_skip;
+         curr_pix_x < max_cropped_mapped; ++curr_pix_x) {
+      auto F_x_y = func(x, y);
+
+      x += win->dx;
+      //check if its inside and if not, continue
+      //if (F_x_y >= 0) {
+      //  if (was_inside) {
+      //    break;
+      //  } else {
+      //    continue;
+      //  }
+      //} else {
+      //  was_inside = true;
+      //}
+      if (F_x_y >= 0) break;
+
+      color_t res_color = color;
+      res_color *= std::abs(std::sin(std::pow(F_x_y * 60, 2) + phase));
+      auto bgra = res_color.get_bgra();
+
+      //distance between current x and center x
+      auto dist = curr_pix_x;
+      //right half
+      if (curr_pix_x + pos_mapped.x < win->_width) {
+        row[dist] = bgra;
+      }
+      //left half
+      auto left = pos_mapped.x - dist;
+      if (left >= 0 && left < win->_width) {
+        row[-dist] = bgra;
       }
     }
+    y -= win->dy;
   }
   phase += 0.1;
 }

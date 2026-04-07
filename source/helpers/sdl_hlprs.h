@@ -2,10 +2,10 @@
 #include <SDL3/SDL.h>
 #include <iostream>
 #include <vector>
-#include <math/vec2.h>
 #include <algorithm>
 #include "app/window.h"
-#include "math/defs.h"
+#include "smns/defs.h"
+#include "smns/math/vec2.h"
 
 class audio;
 
@@ -19,43 +19,78 @@ namespace smns::sdl_hlprs {
   //returns coords in pixels
 template<typename num_t = ::smns::defs::real>
   requires(std::is_arithmetic_v<num_t>)
-int map_to_screen_width(num_t rel_coord, window* win) {
-  int res = static_cast<int>(win->_width * rel_coord);
+int map_to_screen_width(num_t rel_coord, window_t* win) {
+  int res = static_cast<int>(std::floor((win->_width - 1) * rel_coord));
   return res;
 }
 
  //returns coords in pixels
 template<typename num_t = ::smns::defs::real>
   requires(std::is_arithmetic_v<num_t>)
-int map_to_screen_height(num_t rel_coord, window* win) {
-  int res = static_cast<int>(win->_height * (static_cast<num_t>(1) - rel_coord));
+int map_to_screen_height(num_t rel_coord, window_t* win) {
+  int res = static_cast<int>(std::floor((win->_height - 1) * rel_coord));
   return res;
 }
 
-  //returns coords in pixels
+//flip the coord
+ //returns coords in pixels
 template<typename num_t = ::smns::defs::real>
   requires(std::is_arithmetic_v<num_t>)
-vec2<int> map_to_screen(const vec2<num_t>& rel_coords, window* win) {
-  vec2<int> res = {map_to_screen_width(rel_coords.x, win), map_to_screen_height(rel_coords.y, win)};
+::smns::defs::real flip_relative(num_t rel_coord) {
+  return 1_r - rel_coord;
+}
+
+//flip the coord
+ //returns coords in pixels
+int flip_y(int pix_coord, window_t* win);
+
+//flip the coord
+ //returns coords in pixels
+int flip_x(int pix_coord, window_t* win);
+
+ //returns coords in pixels
+template<typename num_t = ::smns::defs::real>
+  requires(std::is_arithmetic_v<num_t>)
+int map_to_screen_height_flip(num_t rel_coord, window_t* win) {
+  int res = static_cast<int>((win->_height - 1) * (1_r - rel_coord));
+  return res;
+}
+
+  //returns coords in pixels with y flipped (it renders upside down)
+template<typename num_t = ::smns::defs::real>
+  requires(std::is_arithmetic_v<num_t>)
+vec2<int> map_to_screen(const vec2<num_t>& rel_coords, window_t* win) {
+  vec2<int> res = {map_to_screen_width(rel_coords.x, win), map_to_screen_height_flip(rel_coords.y, win)};
+  return res;
+}
+
+ //returns coords in pixels
+template<typename num_t = ::smns::defs::real>
+  requires(std::is_arithmetic_v<num_t>)
+vec2<int> map_to_screen_size(const vec2<num_t>& rel_coords, window_t* win) {
+  vec2<int> res = {map_to_screen_width(rel_coords.x, win), map_to_screen_height_flip(rel_coords.y, win)};
   return res;
 }
 
  //returns coord
-::smns::defs::real map_to_screen_relative_height(int pix_coord, window* win);
+::smns::defs::real map_to_screen_relative_height_flip(int pix_coord, window_t* win);
+
+ //returns coord
+::smns::defs::real map_to_screen_relative_height(int pix_coord, window_t* win);
 
   //returns coords
-::smns::defs::real map_to_screen_relative_width(int pix_coord, window* win);
+::smns::defs::real map_to_screen_relative_width(int pix_coord, window_t* win);
 
 //crop to [0, height] in pixels
-int crop_to_screen_height(int pix_coord, window* win);
+int crop_to_screen_height(int pix_coord, window_t* win);
 
 //crop to [0, width] in pixels
-int crop_to_screen_width(int pix_coord, window* win);
+int crop_to_screen_width(int pix_coord, window_t* win);
 
 //crop to [0.0, 1.0]
 template<typename num_t = ::smns::defs::real>
   requires(std::is_arithmetic_v<num_t>)
-num_t crop_to_screen(num_t pix_coord) {
+num_t crop(num_t pix_coord) {
   num_t res = std::min((std::max(pix_coord, 0_r)), 1.0_r);
   return res;
 }
@@ -63,8 +98,8 @@ num_t crop_to_screen(num_t pix_coord) {
 //crop to [0.0, 1.0]
 template<typename num_t = ::smns::defs::real>
   requires(std::is_arithmetic_v<num_t>)
-vec2<num_t> crop_to_screen(vec2<num_t> rel_coord) {
-  vec2<num_t> res = { crop_to_screen(rel_coord.x), crop_to_screen(rel_coord.y) };
+vec2<num_t> crop(vec2<num_t> rel_coord) {
+  vec2<num_t> res = { crop(rel_coord.x), crop(rel_coord.y) };
   return res;
 }
 

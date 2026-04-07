@@ -9,8 +9,9 @@
 #include <string>
 #include <queue>
 #include "app/audio.h"
+#include "smns/types/average.hpp"
 
-class window;
+class window_t;
 class obj;
 
 class app {
@@ -19,7 +20,7 @@ class app {
   using clock = std::chrono::high_resolution_clock;
 
   SDL_Event _event{};
-  std::map<SDL_WindowID, class window*> _windows{};
+  std::map<SDL_WindowID, class window_t*> _windows{};
   std::queue<SDL_WindowID> _windows_to_close{};
 
   std::map<std::string, audio*> _audios{};
@@ -32,6 +33,10 @@ class app {
   float _trgt_FPS{};
   std::chrono::duration<decltype(_trgt_FPS), std::micro> _trgt_frame_time{};
   clock::time_point _FPStimer{};
+  //to print FPS every second
+  clock::time_point _FPS_latch{};
+  uint32_t FPS_counter;
+  smns::types::math::average_t<> FPS_average{};
 
   int _displays_count{};
   SDL_DisplayID* _displays = nullptr;
