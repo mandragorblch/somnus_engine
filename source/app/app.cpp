@@ -106,12 +106,17 @@ void app::_wait_next_frame() {
   if (time_elapsed < _trgt_frame_time)
     std::this_thread::sleep_for(_trgt_frame_time - (clock::now() - _FPStimer));*/
 
+  //TODO let user choose averaging time for FPS_average
   //fps print
   ++FPS_counter;
-  if ((clock::now() - _FPS_latch) >= 1s) {
+  if ((clock::now() - _FPS_latch_1_second) >= 1s) {
     //clear line before printing
-    std::cout << "\r\033[K" << FPS_counter;
-    _FPS_latch = clock::now();
+    if ((clock::now() - _FPS_latch_15_seconds) >= 15s) {
+      FPS_average.reset();
+    }
+    FPS_average += FPS_counter;
+    std::cout << "\r\033[K" << FPS_average();
+    _FPS_latch_1_second = clock::now();
 
     FPS_counter = 0;
     return;

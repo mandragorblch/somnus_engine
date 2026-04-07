@@ -34,8 +34,9 @@ class app {
   std::chrono::duration<decltype(_trgt_FPS), std::micro> _trgt_frame_time{};
   clock::time_point _FPStimer{};
   //to print FPS every second
-  clock::time_point _FPS_latch{};
-  uint32_t FPS_counter;
+  clock::time_point _FPS_latch_1_second{};
+  clock::time_point _FPS_latch_15_seconds{};
+  uint32_t FPS_counter{};
   smns::types::math::average_t<> FPS_average{};
 
   int _displays_count{};
