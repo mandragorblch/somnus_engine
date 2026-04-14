@@ -8,34 +8,39 @@
 #include <list>
 #include <string>
 #include <queue>
-#include "app/audio.h"
+#include "core/audio.h"
 #include "smns/types/average.hpp"
+#include "../objects/base_objects/Renderer.h"
+#include "Scene.h"
 
-class window_t;
-class obj;
+class Window;
+class Object;
 
-class app {
+class App {
  public:
   using real = smns::defs::real;
   using clock = std::chrono::high_resolution_clock;
 
   SDL_Event _event{};
-  std::map<SDL_WindowID, class window_t*> _windows{};
+  std::map<SDL_WindowID, class Window*> _windows{};
   std::queue<SDL_WindowID> _windows_to_close{};
 
-  std::map<std::string, audio*> _audios{};
-  std::list<audio*> _active_audios{};
+  std::map<std::string, Audio*> _audios{};
+  std::list<Audio*> _active_audios{};
   std::string _audio_files_path;
   real _master_volume{};
 
-  std::vector<obj*> objs{};
+	Scene scene;
 
-  float _trgt_FPS{};
-  std::chrono::duration<decltype(_trgt_FPS), std::micro> _trgt_frame_time{};
+  real _trgt_FPS{};
+  std::chrono::microseconds _trgt_frame_time{};
   clock::time_point _FPStimer{};
   //to print FPS every second
   clock::time_point _FPS_latch_1_second{};
-  clock::time_point _FPS_latch_15_seconds{};
+  //user defined time for averaging FPS
+  //15 seconds by default
+  clock::time_point _FPS_averaging_latch{};
+  std::chrono::seconds _FPS_averaging_time{};
   uint32_t FPS_counter{};
   smns::types::math::average_t<> FPS_average{};
 
@@ -48,8 +53,10 @@ class app {
 
   bool running = true;
 
-  app(float target_FPS, const std::string& audio_files_path, real _master_volume = real{1.0});
-  ~app();
+  App(real target_FPS, const std::string& audio_files_path,
+      std::chrono::seconds _FPS_averaging_time = std::chrono::seconds(15),
+      real master_volume = real{1.0});
+  ~App();
 
   auto add_window(const std::string& title, int width, int height)
       -> decltype(_windows)::iterator;
@@ -58,14 +65,11 @@ class app {
 
 
   auto add_audio(const std::string& filename, real volume) -> decltype(_audios)::iterator;
-  //put buffer to audio stream
+  //put buffer to Audio stream
   void play_audio(decltype(_audios)::iterator audio_pair_it);
-  //put buffer to audio stream
+  //put buffer to Audio stream
   void play_audio(const std::string& filename);
 
-
-
-  void add_obj(obj* object);
 
 
 

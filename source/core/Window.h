@@ -1,13 +1,13 @@
 #pragma once
 #include <SDL3/SDL.h>
 #include <iostream>
-#include "app/app.h"
+#include "core/App.h"
 #include "smns/math/vec2.h"
 
-class window_t {
+class Window {
  public:
   using real = smns::defs::real;
-  class app* _app = nullptr;
+  class App* _app = nullptr;
   SDL_Window* _window = nullptr;
   SDL_Surface* _surface = nullptr;
   const SDL_DisplayMode* _mode = nullptr;
@@ -19,9 +19,9 @@ class window_t {
 
   void window_resized_callback();
 
-  window_t(app* p_app, const std::string& title, int width, int height);
+  Window(App* p_app, const std::string& title, int width, int height);
 
-  ~window_t();
+  ~Window();
 
 
   vec2<int> get_win_pos_pix();

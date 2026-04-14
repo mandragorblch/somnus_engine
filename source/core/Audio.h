@@ -15,7 +15,7 @@ struct audio_stream_data;
 
 constexpr int MAX_AUDIOSTREAMS_AMOUNT = 256;
 
-class audio {
+class Audio {
  public:
   using real = smns::defs::real;
   using audio_stream_data = smns::sdl_hlprs::audio_stream_data;
@@ -33,7 +33,7 @@ class audio {
   std::atomic<size_t> read_index  = 0;
   std::vector<size_t> to_remove{};
 
-  // dont touch, original audio file stored here
+  // dont touch, original Audio file stored here
   Uint8* _audioBuf = nullptr;
 
   Uint32 _audioLen = 0;
@@ -48,10 +48,10 @@ class audio {
   real* _p_master_volume = nullptr;
   //real _cur_volume{};
 
-  audio(const std::string& filename, real* p_master_volume, real volume = real{1.0},
+  Audio(const std::string& filename, real* p_master_volume, real volume = real{1.0},
         SDL_AudioDeviceID deviceID = SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK);
 
-  ~audio();
+  ~Audio();
 
   //void process_audio_buff();
 

@@ -4,8 +4,8 @@
 #include <functional>
 #include <complex>
 #include "smns/defs.h"
-#include "obj/heart.h"
-#include "app/app.h"
+#include "objects/Heart.h"
+#include "core/App.h"
 #include "smns/math/analytics.h"
 
 
@@ -54,7 +54,7 @@ std::mt19937_64 RND(rd());
 int main() {
   using clock = std::chrono::high_resolution_clock;
 
-  app m_app(9999, "res/wav/");
+  App m_app(9999, "res/wav/", std::chrono::seconds(1));
 
   auto WHOA_IT = m_app.add_audio("LEGALIZENUCLEAR.wav", 0.3_r);
 
@@ -66,7 +66,8 @@ int main() {
 
   heart<HEART_TYPES::PARABOLA> m_heart(win1->second, 0.05, 0.06, 3.9, 25, 1, 1);
   m_heart.pos = {0.5, 0.5};
-  m_app.add_obj(&m_heart);
+  m_app.scene.add_object(&m_heart);
+	m_app.scene.add_renderer(&m_heart);
 
 
 

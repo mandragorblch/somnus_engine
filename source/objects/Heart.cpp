@@ -18,7 +18,7 @@ real heart<HEART_TYPES::PARABOLA>::func(real x, real y) {
       return a - b;
 }
 
-heart<HEART_TYPES::PARABOLA>::heart(window_t* win, real x0, real y0, real phi, real stretch,
+heart<HEART_TYPES::PARABOLA>::heart(Window* win, real x0, real y0, real phi, real stretch,
                                     real x_scale, real y_scale)
     : render_t(color_t<>({255, 100, 150}),
                x_scale, y_scale),
@@ -26,13 +26,13 @@ heart<HEART_TYPES::PARABOLA>::heart(window_t* win, real x0, real y0, real phi, r
       y0(y0),
       phi(phi),
       stretch(stretch) {
-  calc_bounds();
+  calc_bounds(win);
   
   //TODO do i need a ceil?
   SDF_map.resize(std::ceil((top_bound - bottom_bound) * win->_height));
   real dy = 1_r / win->_height;
   real y = top_bound;
-  for (int i = SDF_map.size(); i-- > 0; ) {
+  for (auto i = SDF_map.size(); i-- > 0; ) {
     auto dist_x = smns::analytic::newton_solver_const_y(
         [&](real x, real y) { return func(x, y); }, 0, y);
     if (dist_x <= 0) break;
@@ -41,7 +41,7 @@ heart<HEART_TYPES::PARABOLA>::heart(window_t* win, real x0, real y0, real phi, r
   }
 }
 
-void heart<HEART_TYPES::PARABOLA>::calc_bounds() {
+void heart<HEART_TYPES::PARABOLA>::calc_bounds(Window* win) {
   real cos_phi_sqrd = cos_phi * cos_phi;
   real sin_phi_sqrd = sin_phi * sin_phi;
 
@@ -64,8 +64,8 @@ void heart<HEART_TYPES::PARABOLA>::set_phi(real phi) {
 }
 
 // the surface must be locked
-void heart<HEART_TYPES::PARABOLA>::draw(window_t* win) {
-  auto* surf = win->_surface;
+void heart<HEART_TYPES::PARABOLA>::draw(Window* window) {
+  auto* surf = window->_surface;
   SDL_PixelFormat fmt = surf->format;
   auto details = SDL_GetPixelFormatDetails(fmt);
   check(details);
@@ -82,29 +82,29 @@ void heart<HEART_TYPES::PARABOLA>::draw(window_t* win) {
   auto right_cropped = right_cropped_world - pos.x;
   auto left_cropped = left_cropped_world - pos.x;
 
-  auto top_cropped_mapped_relative = map_to_screen_height(top_cropped, win);
-  auto bottom_cropped_mapped_relative = map_to_screen_height(bottom_cropped, win);
-  auto right_cropped_mapped_relative = map_to_screen_height(right_cropped, win);
-  auto left_cropped_mapped_relative = map_to_screen_height(left_cropped, win);
+  auto top_cropped_mapped_relative = map_to_screen_height(top_cropped, window);
+  auto bottom_cropped_mapped_relative = map_to_screen_height(bottom_cropped, window);
+  auto right_cropped_mapped_relative = map_to_screen_height(right_cropped, window);
+  auto left_cropped_mapped_relative = map_to_screen_height(left_cropped, window);
 
   auto bottom_cropped_mapped_world =
-      map_to_screen_height(bottom_cropped_world, win);
+      map_to_screen_height(bottom_cropped_world, window);
   auto top_cropped_mapped_world =
-      map_to_screen_height(top_cropped_world, win);
+      map_to_screen_height(top_cropped_world, window);
   auto right_cropped_mapped_world =
-      map_to_screen_width(right_cropped_world, win);
+      map_to_screen_width(right_cropped_world, window);
   auto left_cropped_mapped_world =
-      map_to_screen_width(left_cropped_world, win);
+      map_to_screen_width(left_cropped_world, window);
 
-  auto pos_cropped_mapped = map_to_screen_size(crop(pos), win);
-  auto pos_mapped = map_to_screen_size(pos, win);
+  auto pos_cropped_mapped = map_to_screen_size(crop(pos), window);
+  auto pos_mapped = map_to_screen_size(pos, window);
 
   auto r = std::abs(right_cropped);
   auto l = std::abs(left_cropped);
   auto min_v = std::min(r, l);
   auto max_v = std::max(r, l);
 
-  int max_cropped_mapped = map_to_screen_width(max_v, win);
+  int max_cropped_mapped = map_to_screen_width(max_v, window);
 
   real x_begin;
   if (right_cropped < 0)
@@ -116,52 +116,21 @@ void heart<HEART_TYPES::PARABOLA>::draw(window_t* win) {
   auto y = top_cropped;
   auto x = x_begin;
 
-  // TODO optimize
-  //for (auto curr_pix_y = bottom_cropped_mapped;
-  //     curr_pix_y < top_cropped_mapped; ++curr_pix_y) {
-  //  auto* row = &pixels[curr_pix_y * pitch + pos_mapped.x];
-  //  absolute_x = absolute_x_begin;
-  //  for (auto curr_pix_x = max_cropped_mapped;
-  //       curr_pix_x-- > pos_cropped_mapped.x;) {
-  //    auto F_x_y = func(absolute_x, absolute_y);
-  //    bool is_inside = F_x_y < 0;
-
-  //    absolute_x -= win->dx;
-  //    //check if its inside and if not, continue
-  //    if (F_x_y >= 0) continue;
-
-  //    color_t res_color = color;
-  //    //res_color *= std::abs(std::sin(std::pow(F_x_y * 60, 2) + phase));
-  //    auto bgra = res_color.get_bgra();
-
-  //    //distance between current x and center x
-  //    auto dist = curr_pix_x - pos_mapped.x;
-  //    //right half
-  //    if (curr_pix_x < win->_width) {
-  //      row[dist] = bgra;
-  //    }
-  //    //left half
-  //    auto left = pos_mapped.x - 2 * dist;
-  //    if (left >= 0 && left < win->_width) {
-  //      row[-dist] = bgra;
-  //    }
-  //  }
-  //  absolute_y += win->dy;
-  //}
   int curr_pix_y = top_cropped_mapped_world;
     for (int curr_rel_pix_y = top_cropped_mapped_relative;
        curr_rel_pix_y > bottom_cropped_mapped_relative; --curr_rel_pix_y) {
     
-    auto* row = &pixels[flip_y(curr_pix_y, win) * pitch + pos_cropped_mapped.x];
+    auto* row = &pixels[flip_y(curr_pix_y, window) * pitch + pos_cropped_mapped.x];
     --curr_pix_y;
     auto x_skip = SDF_map[curr_rel_pix_y - bottom_cropped_mapped_relative];
-    x = x_begin + static_cast<real>(x_skip) / (win->_width - 1);
+    x = x_begin + static_cast<real>(x_skip) / (window->_width - 1);
     bool was_inside = false;
     for (int curr_pix_x = x_skip;
          curr_pix_x < max_cropped_mapped; ++curr_pix_x) {
+
       auto F_x_y = func(x, y);
 
-      x += win->dx;
+      x += window->dx;
       //check if its inside and if not, continue
       //if (F_x_y >= 0) {
       //  if (was_inside) {
@@ -181,16 +150,16 @@ void heart<HEART_TYPES::PARABOLA>::draw(window_t* win) {
       //distance between current x and center x
       auto dist = curr_pix_x;
       //right half
-      if (curr_pix_x + pos_mapped.x < win->_width) {
+      if (curr_pix_x + pos_mapped.x < window->_width) {
         row[dist] = bgra;
       }
       //left half
       auto left = pos_mapped.x - dist;
-      if (left >= 0 && left < win->_width) {
+      if (left >= 0 && left < window->_width) {
         row[-dist] = bgra;
       }
     }
-    y -= win->dy;
+    y -= window->dy;
   }
   phase += 0.1;
 }

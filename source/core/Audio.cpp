@@ -48,7 +48,7 @@ void audio_callback(void* userdata, SDL_AudioStream* stream,
   }
 }
 
-audio::audio(const std::string& filename, real* p_master_volume, real volume,
+Audio::Audio(const std::string& filename, real* p_master_volume, real volume,
              SDL_AudioDeviceID deviceID)
     : _devID(deviceID), _p_master_volume(p_master_volume), _volume(volume) {
   check(SDL_LoadWAV(filename.data(), &_spec, &_audioBuf, &_audioLen));
@@ -57,7 +57,7 @@ audio::audio(const std::string& filename, real* p_master_volume, real volume,
   check(_devID);
 }
 
-bool audio::play() {
+bool Audio::play() {
   // needed to decide is its already playing to add/not add to active audios
   bool res = is_playing();
   auto stream_data = acquire_stream();
@@ -75,7 +75,7 @@ bool audio::play() {
 }
 
 //TODO reread revisit recycle
-void audio::tick() {
+void Audio::tick() {
   bool changed = read_index.load(std::memory_order_relaxed)
     != write_index.load(std::memory_order_acquire);
 
@@ -107,21 +107,21 @@ void audio::tick() {
   }
 }
 
-void audio::pause() {
+void Audio::pause() {
   for (const auto& stream_data : _stream_datas_active) {
     SDL_PauseAudioStreamDevice(stream_data.get()->_p_stream);
   }
 }
 
-void audio::continue_() {
+void Audio::continue_() {
   for (const auto& stream_data : _stream_datas_active) {
     SDL_ResumeAudioStreamDevice(stream_data.get()->_p_stream);
   }
 }
 
-bool audio::is_playing() { return _streams_playing > 0; };
+bool Audio::is_playing() { return _streams_playing > 0; };
 
-audio_stream_data* audio::create_stream() {
+audio_stream_data* Audio::create_stream() {
   SDL_AudioStream* p_stream =
       SDL_OpenAudioDeviceStream(_devID, &_spec, NULL, NULL);
   check(p_stream);
@@ -141,7 +141,7 @@ audio_stream_data* audio::create_stream() {
   return stream_data;
 }
 
-audio_stream_data* audio::acquire_stream() {
+audio_stream_data* Audio::acquire_stream() {
   if (!_stream_datas_free_pool.empty()) {
     move_stream_data(_stream_datas_free_pool, _stream_datas_active);
     _stream_datas_active.back().get()->_iter = _stream_datas_active.size() - 1;
@@ -151,19 +151,19 @@ audio_stream_data* audio::acquire_stream() {
   }
 }
 
-void audio::move_stream_data(stream_data_cntnr_t& src,
+void Audio::move_stream_data(stream_data_cntnr_t& src,
                              stream_data_cntnr_t& dst) {
   auto ptr = std::move(src.back());
   src.pop_back();
   dst.push_back(std::move(ptr));
 }
 
-void audio::clear_streams() {
+void Audio::clear_streams() {
   _stream_datas_active.clear();
   _stream_datas_free_pool.clear();
 }
 
-void audio::clean_up() {
+void Audio::clean_up() {
   if (_stream_datas_free_pool.empty()) {
     if (!_stream_datas_active.empty()) {
       move_stream_data(_stream_datas_active, _stream_datas_free_pool);
@@ -175,12 +175,12 @@ void audio::clean_up() {
   _stream_datas_active.clear();
 }
 
-audio::~audio() {
+Audio::~Audio() {
   SDL_CloseAudioDevice(_devID);
   SDL_free(_audioBuf);
 }
 
-//void audio::process_audio_buff() {
+//void Audio::process_audio_buff() {
 //  int bytesPerSample = SDL_AUDIO_BYTESIZE(_spec.format);
 //  int totalSamples = _audioLen / bytesPerSample;
 //

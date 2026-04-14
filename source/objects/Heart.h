@@ -1,6 +1,6 @@
 #pragma once
 #include "smns/defs.h"
-#include "obj/base_objs/renderer.h"
+#include "objects/base_objects/Renderer.h"
 #include <functional>
 
 enum class HEART_TYPES : uint8_t {
@@ -36,7 +36,7 @@ class heart<HEART_TYPES::PARABOLA> : public renderer<RENDER_TYPE::ANALYTICAL, he
   real func(real x, real y);
  
   // constructor
-  heart(window_t* win, real x0, real y0, real phi, real stretch = real{1.0}, real x_scale = real{1.0}, real y_scale = real{1.0});
+  heart(Window* win, real x0, real y0, real phi, real stretch = real{1.0}, real x_scale = real{1.0}, real y_scale = real{1.0});
 
   // copy constructor
   heart(const heart&) = default;
@@ -53,19 +53,20 @@ class heart<HEART_TYPES::PARABOLA> : public renderer<RENDER_TYPE::ANALYTICAL, he
   // destructor
   ~heart() = default;
 
-  virtual void calc_bounds() override;
+  //TODO remove virtuals
+  void calc_bounds(Window* win);
 
   void set_phi(real phi);
 
-  virtual void draw(window_t* win) override;
+  void draw(Window* window);
 };
 
 
 
 //template<>
-//class heart<HEART_TYPES::CIRCLE_ATANH> : public obj {
+//class heart<HEART_TYPES::CIRCLE_ATANH> : public Object {
 // public:
-//  using obj::obj;
+//  using Object::Object;
 //  using real = smns::defs::real;
 //  real x0{};
 //  real y0{};
@@ -95,5 +96,5 @@ class heart<HEART_TYPES::PARABOLA> : public renderer<RENDER_TYPE::ANALYTICAL, he
 //
 //  void set_phi(real phi);
 //
-//  void draw(window_t* win);
+//  void draw(Window* win);
 //};

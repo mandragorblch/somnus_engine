@@ -4,7 +4,7 @@
 
 using namespace smns::sdl_hlprs;
 
-void window_t::window_resized_callback() {
+void Window::window_resized_callback() {
   SDL_GetWindowSizeInPixels(_window, &_width, &_height);
   dy = map_to_screen_relative_height(1, this) -
        map_to_screen_relative_height(0, this);
@@ -12,13 +12,13 @@ void window_t::window_resized_callback() {
        map_to_screen_relative_width(0, this);
 }
 
-window_t::window_t(app* p_app, const std::string& title, int width, int height)
+Window::Window(App* p_app, const std::string& title, int width, int height)
     : _app(p_app) {
-  // Create a window_t
+  // Create a Window
   _window = SDL_CreateWindow(title.data(), width, height, 0);
   check(_window);
 
-  // Get the window_t surface
+  // Get the Window surface
   _surface = SDL_GetWindowSurface(_window);
   check(_surface);
 
@@ -28,16 +28,16 @@ window_t::window_t(app* p_app, const std::string& title, int width, int height)
   window_resized_callback();
 }
 
-window_t::~window_t() { SDL_DestroyWindow(_window); }
+Window::~Window() { SDL_DestroyWindow(_window); }
 
-vec2<int> window_t::get_win_pos_pix() {
+vec2<int> Window::get_win_pos_pix() {
   vec2<int> pos_pix{};
 
   SDL_GetWindowPosition(_window, &pos_pix.x, &pos_pix.y);
   return pos_pix;
 }
 
-vec2<> window_t::get_win_pos_rel() {
+vec2<> Window::get_win_pos_rel() {
   vec2<int> pos_pix = get_win_pos_pix();
   vec2<> pos_rel{};
 
@@ -46,7 +46,7 @@ vec2<> window_t::get_win_pos_rel() {
   return pos_rel;
 }
 
-::smns::defs::real window_t::get_aspect_ratio() {
+::smns::defs::real Window::get_aspect_ratio() {
   real aspect_ratio = static_cast<real>(_mode->w) / _mode->h;
 
   return aspect_ratio;
