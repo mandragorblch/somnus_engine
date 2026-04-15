@@ -20,7 +20,7 @@ real heart<HEART_TYPES::PARABOLA>::func(real x, real y) {
 
 heart<HEART_TYPES::PARABOLA>::heart(Window* win, real x0, real y0, real phi, real stretch,
                                     real x_scale, real y_scale)
-    : render_t(color_t<>({255, 100, 150}),
+    : render_t(Color<>({255, 100, 150}),
                x_scale, y_scale),
       x0(x0),
       y0(y0),
@@ -143,7 +143,7 @@ void heart<HEART_TYPES::PARABOLA>::draw(Window* window) {
       //}
       if (F_x_y >= 0) break;
 
-      color_t res_color = color;
+      Color res_color = color;
       res_color *= std::abs(std::sin(std::pow(F_x_y * 60, 2) + phase));
       auto bgra = res_color.get_bgra();
 

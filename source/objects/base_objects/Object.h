@@ -34,12 +34,12 @@ class Object {
 //template<class render_t>
 //class Object {
 // public:
-//  color_t<> color{};
+//  Color<> color{};
 //  vec2<> pos{};
 //  vec2<> vel{};
 //  real mass{1.0};
 //
-//  Object(const color_t<>& color_t = color_t<>{}, vec2<> pos = vec2<>{},
+//  Object(const Color<>& Color = Color<>{}, vec2<> pos = vec2<>{},
 //      vec2<> vel = vec2<>{}, real mass = real{1.0});
 //  Object(const Object&) = default;
 //  Object& operator=(const Object&) = default;

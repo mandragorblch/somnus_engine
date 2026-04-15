@@ -34,12 +34,12 @@ class renderer<RENDER_TYPE::ANALYTICAL, render_obj_t> : public Object,
   using base_renderer::base_renderer;
 
  public:
-  color_t<> color{};
+  Color<> color{};
   //implicit function
   real func(real x, real y);
 
   renderer() = delete;
-  renderer(color_t<> color, real x_scale = real{1.0},
+  renderer(Color<> color, real x_scale = real{1.0},
            real y_scale = real{1.0})
       : base_renderer({x_scale, y_scale}), color(color) {}
   renderer(const render_t& other) = default;
