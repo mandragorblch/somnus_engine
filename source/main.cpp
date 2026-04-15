@@ -54,7 +54,7 @@ std::mt19937_64 RND(rd());
 int main() {
   using clock = std::chrono::high_resolution_clock;
 
-  App m_app(9999, "res/wav/", std::chrono::seconds(1));
+  App m_app(60, "res/wav/", std::chrono::seconds(1));
 
   auto WHOA_IT = m_app.add_audio("LEGALIZENUCLEAR.wav", 0.3_r);
 
@@ -63,11 +63,13 @@ int main() {
   //auto win3 = m_app.add_window(rnd_title(), 1000, 1000);
 
 
-
-  heart<HEART_TYPES::PARABOLA> m_heart(win1->second, 0.05, 0.06, 3.9, 25, 1, 1);
-  m_heart.pos = {0.5, 0.5};
-  m_app.scene.add_object(&m_heart);
-	m_app.scene.add_renderer(&m_heart);
+//TODO decide how to create an object with physics, or link renderable to physical object
+ // heart<HEART_TYPES::PARABOLA> m_heart(win1->second, 0.05, 0.06, 3.9, 25, 1, 1);
+ // m_heart.pos = {0.5, 0.5};
+	//m_heart.mass = 0.1_r;
+	//m_heart.force.y = m_heart.mass * -9.8_r;
+ // m_app.scene.add_object(&m_heart);
+	//m_app.scene.world.add_render_object(&m_heart);
 
 
 

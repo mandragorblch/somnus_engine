@@ -44,6 +44,8 @@ class App {
   uint32_t FPS_counter{};
   smns::types::math::average_t<> FPS_average{};
 
+	real dt{};
+
   int _displays_count{};
   SDL_DisplayID* _displays = nullptr;
 

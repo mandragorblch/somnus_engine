@@ -6,7 +6,7 @@
 
 enum class RENDER_TYPE : uint8_t { IMAGE, ANALYTICAL };
 
-class base_renderer {
+class Renderable_base {
   using real = smns::defs::real;
 
  public:
@@ -24,27 +24,27 @@ class base_renderer {
 };
 
 template <RENDER_TYPE render_t, class render_obj_t>
-class renderer : public Object, public base_renderer {};
+class Renderable : public Object, public Renderable_base {};
 
 template <class render_obj_t>
-class renderer<RENDER_TYPE::ANALYTICAL, render_obj_t> : public Object,
-                                                        public base_renderer {
+class Renderable<RENDER_TYPE::ANALYTICAL, render_obj_t> : public Object,
+                                                        public Renderable_base {
   using real = smns::defs::real;
-  using render_t = renderer<RENDER_TYPE::ANALYTICAL, render_obj_t>;
-  using base_renderer::base_renderer;
+  using render_t = Renderable<RENDER_TYPE::ANALYTICAL, render_obj_t>;
+  using Renderable_base::Renderable_base;
 
  public:
   Color<> color{};
   //implicit function
   real func(real x, real y);
 
-  renderer() = delete;
-  renderer(Color<> color, real x_scale = real{1.0},
+  Renderable() = delete;
+  Renderable(Color<> color, real x_scale = real{1.0},
            real y_scale = real{1.0})
-      : base_renderer({x_scale, y_scale}), color(color) {}
-  renderer(const render_t& other) = default;
+      : Renderable_base({x_scale, y_scale}), color(color) {}
+  Renderable(const render_t& other) = default;
   render_t& operator=(const render_t& other) = default;
-  renderer(render_t&& other) = default;
+  Renderable(render_t&& other) = default;
   render_t& operator=(render_t&& other) = default;
 
   // TODO math for calculating relative positions of existing windows

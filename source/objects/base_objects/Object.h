@@ -12,6 +12,7 @@ class Object {
   using real = smns::defs::real;
   struct vec2<> pos{};
   struct vec2<> vel{};
+	struct vec2<> force{};
   real mass{1.0};
 
 

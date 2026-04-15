@@ -13,15 +13,15 @@ enum class HEART_TYPES : uint8_t {
 };
 
 // the heart object
-// defines as rotated by angle and mirrored parabola
+// defines as rotated by an angle and mirrored parabola
 template<HEART_TYPES type>
-class heart : public renderer<RENDER_TYPE::ANALYTICAL, heart<type>> {};
+class heart : public Renderable<RENDER_TYPE::ANALYTICAL, heart<type>> {};
 
 template<>
-class heart<HEART_TYPES::PARABOLA> : public renderer<RENDER_TYPE::ANALYTICAL, heart<HEART_TYPES::PARABOLA>> {
+class heart<HEART_TYPES::PARABOLA> : public Renderable<RENDER_TYPE::ANALYTICAL, heart<HEART_TYPES::PARABOLA>> {
  public:
   using real = smns::defs::real;
-  using render_t = renderer<RENDER_TYPE::ANALYTICAL, heart<HEART_TYPES::PARABOLA>>;
+  using render_t = Renderable<RENDER_TYPE::ANALYTICAL, heart<HEART_TYPES::PARABOLA>>;
   using render_t::render_t;
   real x0{};
   real y0{};
@@ -53,48 +53,9 @@ class heart<HEART_TYPES::PARABOLA> : public renderer<RENDER_TYPE::ANALYTICAL, he
   // destructor
   ~heart() = default;
 
-  //TODO remove virtuals
   void calc_bounds(Window* win);
 
   void set_phi(real phi);
 
   void draw(Window* window);
 };
-
-
-
-//template<>
-//class heart<HEART_TYPES::CIRCLE_ATANH> : public Object {
-// public:
-//  using Object::Object;
-//  using real = smns::defs::real;
-//  real x0{};
-//  real y0{};
-//  real r{};
-//  real param{1.0};
-//
-//
-//  // constructor
-//  heart(real x0, real y0, real r, real param = real{1.0}, real x_scale = real{1.0}, real y_scale = real{1.0});
-//
-//  // copy constructor
-//  heart(const heart&) = default;
-//
-//  // copy assignment
-//  heart& operator=(const heart&) = default;
-//
-//  // move constructor
-//  heart(heart&&) noexcept = default;
-//
-//  // move assignment
-//  heart& operator=(heart&&) noexcept = default;
-//
-//  // destructor
-//  ~heart() = default;
-//
-//  void calc_bounds();
-//
-//  void set_phi(real phi);
-//
-//  void draw(Window* win);
-//};

@@ -29,8 +29,8 @@ heart<HEART_TYPES::PARABOLA>::heart(Window* win, real x0, real y0, real phi, rea
   calc_bounds(win);
   
   //TODO do i need a ceil?
-  SDF_map.resize(std::ceil((top_bound - bottom_bound) * win->_height));
-  real dy = 1_r / win->_height;
+  SDF_map.resize(std::ceil((top_bound - bottom_bound) * (win->_height - 1)));
+  real dy = 1_r / (win->_height - 1);
   real y = top_bound;
   for (auto i = SDF_map.size(); i-- > 0; ) {
     auto dist_x = smns::analytic::newton_solver_const_y(
@@ -41,7 +41,7 @@ heart<HEART_TYPES::PARABOLA>::heart(Window* win, real x0, real y0, real phi, rea
   }
 }
 
-void heart<HEART_TYPES::PARABOLA>::calc_bounds(Window* win) {
+void heart<HEART_TYPES::PARABOLA>::calc_bounds(Window* window) {
   real cos_phi_sqrd = cos_phi * cos_phi;
   real sin_phi_sqrd = sin_phi * sin_phi;
 
@@ -55,6 +55,12 @@ void heart<HEART_TYPES::PARABOLA>::calc_bounds(Window* win) {
 
   right_bound = x0 - mult * cos_phi_sqrd / sin_phi;
   left_bound = -right_bound;
+
+	top_bound_pix = map_to_screen_height(top_bound, window);
+  bottom_bound_pix = map_to_screen_height(bottom_bound, window);
+  right_bound_pix = map_to_screen_height(right_bound, window);
+  left_bound_pix = map_to_screen_height(left_bound, window);
+
 }
 
 void heart<HEART_TYPES::PARABOLA>::set_phi(real phi) {
@@ -105,12 +111,13 @@ void heart<HEART_TYPES::PARABOLA>::draw(Window* window) {
   auto max_v = std::max(r, l);
 
   int max_cropped_mapped = map_to_screen_width(max_v, window);
+	int min_cropped_mapped = map_to_screen_width(min_v, window);
 
   real x_begin;
   if (right_cropped < 0)
-    x_begin = -right_cropped;
+    x_begin = min_v;
   else if (left_cropped > 0)
-    x_begin = left_cropped;
+    x_begin = min_v;
   else
     x_begin = 0;
   auto y = top_cropped;
@@ -119,29 +126,26 @@ void heart<HEART_TYPES::PARABOLA>::draw(Window* window) {
   int curr_pix_y = top_cropped_mapped_world;
     for (int curr_rel_pix_y = top_cropped_mapped_relative;
        curr_rel_pix_y > bottom_cropped_mapped_relative; --curr_rel_pix_y) {
-    
-    auto* row = &pixels[flip_y(curr_pix_y, window) * pitch + pos_cropped_mapped.x];
+    auto* row = &pixels[flip_y(curr_pix_y, window) * pitch];
     --curr_pix_y;
-    auto x_skip = SDF_map[curr_rel_pix_y - bottom_cropped_mapped_relative];
+		//TODO x_skip goes from centre, we should substract distance between centre and how much of heart left on screen
+    auto x_skip = SDF_map[curr_rel_pix_y - bottom_cropped_mapped_relative - 1];
+		if (x_skip != 0) x_skip -= std::abs(pos_mapped.x - min_cropped_mapped);
     x = x_begin + static_cast<real>(x_skip) / (window->_width - 1);
     bool was_inside = false;
+		auto F_x_y = func(x, y);
+		while(F_x_y > 0 && x_skip < max_cropped_mapped) {
+			x += window->dx;
+			++x_skip;
+			F_x_y = func(x, y);
+		}
     for (int curr_pix_x = x_skip;
          curr_pix_x < max_cropped_mapped; ++curr_pix_x) {
 
-      auto F_x_y = func(x, y);
+       F_x_y = func(x, y);
 
       x += window->dx;
-      //check if its inside and if not, continue
-      //if (F_x_y >= 0) {
-      //  if (was_inside) {
-      //    break;
-      //  } else {
-      //    continue;
-      //  }
-      //} else {
-      //  was_inside = true;
-      //}
-      if (F_x_y >= 0) break;
+      if (F_x_y > 0) break;
 
       Color res_color = color;
       res_color *= std::abs(std::sin(std::pow(F_x_y * 60, 2) + phase));
@@ -149,14 +153,15 @@ void heart<HEART_TYPES::PARABOLA>::draw(Window* window) {
 
       //distance between current x and center x
       auto dist = curr_pix_x;
+			auto right = pos_mapped.x + dist;
       //right half
-      if (curr_pix_x + pos_mapped.x < window->_width) {
-        row[dist] = bgra;
+      if (right >= 0 && right < window->_width) {
+        row[right] = bgra;
       }
       //left half
       auto left = pos_mapped.x - dist;
       if (left >= 0 && left < window->_width) {
-        row[-dist] = bgra;
+        row[left] = bgra;
       }
     }
     y -= window->dy;
