@@ -1,5 +1,7 @@
 #include "Scene.h"
+#include "../core/Window.h"
 
+namespace smns::core{
 void Scene::add_object(Object* object) {
   world.objects.push_back(object);
 }
@@ -12,5 +14,6 @@ void Scene::render(Window* window) {
 }
 
 void Scene::tick(real dt) {
-	world.tick(dt);
+	//world.tick(dt);
+}
 }

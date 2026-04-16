@@ -25,16 +25,20 @@ class heart<HEART_TYPES::PARABOLA> : public Renderable<RENDER_TYPE::ANALYTICAL, 
   using render_t::render_t;
   real x0{};
   real y0{};
+
+ private:
   real phi{};
+
+ public:
   real stretch{1.0};
   real phase{};
   real cos_phi = std::cos(phi);
   real sin_phi = std::sin(phi);
-  std::vector<int> SDF_map; 
+  std::vector<real> SDF_map;
   
 
   real func(real x, real y);
- 
+
   // constructor
   heart(Window* win, real x0, real y0, real phi, real stretch = real{1.0}, real x_scale = real{1.0}, real y_scale = real{1.0});
 
@@ -53,7 +57,7 @@ class heart<HEART_TYPES::PARABOLA> : public Renderable<RENDER_TYPE::ANALYTICAL, 
   // destructor
   ~heart() = default;
 
-  void calc_bounds(Window* win);
+  void calc_bounds(int window_width, int window_height);
 
   void set_phi(real phi);
 

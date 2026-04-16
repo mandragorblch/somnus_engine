@@ -6,10 +6,8 @@ using namespace smns::sdl_hlprs;
 
 void Window::window_resized_callback() {
   SDL_GetWindowSizeInPixels(_window, &_width, &_height);
-  dy = map_to_screen_relative_height(1, this) -
-       map_to_screen_relative_height(0, this);
-  dx = map_to_screen_relative_width(1, this) -
-       map_to_screen_relative_width(0, this);
+  dy = map_to_window_relative_height(1, _height);
+  dx = map_to_window_relative_width(1, _width);
 }
 
 Window::Window(App* p_app, const std::string& title, int width, int height)
@@ -24,7 +22,7 @@ Window::Window(App* p_app, const std::string& title, int width, int height)
 
   _mode = SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(_window));
   check(_mode);
-
+	//TODO detup callback
   window_resized_callback();
 }
 

@@ -9,40 +9,39 @@ using real = smns::defs::real;
 
 namespace smns::sdl_hlprs {
 
-int flip_y(int pix_coord, Window* win) {
-  return (win->_height - 1) - pix_coord;
+int flip_y(int pix_coord, int window_height) {
+  return (window_height - 1) - pix_coord;
 }
 
-int flip_x(int pix_coord, Window* win) {
-  return (win->_width - 1) - pix_coord;
+int flip_x(int pix_coord, int window_width) {
+  return (window_width - 1) - pix_coord;
 }
 
-real map_to_screen_relative_height_flip(int pix_coord, Window* win) {
-  real res = pix_coord;
-  res /= (win->_height - 1);
+real map_to_window_relative_height_flip(int pix_coord, int window_height) {
+  real res = map_to_window_relative_height(pix_coord, window_height);
   res = 1_r - res;
   return res;
 }
 
-real map_to_screen_relative_height(int pix_coord, Window* win) {
+real map_to_window_relative_height(int pix_coord, int window_height) {
   real res = pix_coord;
-  res /= (win->_height - 1);
+  res /= window_height - 1;
   return res;
 }
 
-real map_to_screen_relative_width(int pix_coord, Window* win) {
+real map_to_window_relative_width(int pix_coord,int window_width) {
   real res = pix_coord;
-  res /= (win->_width - 1);
+  res /= window_width - 1;
   return res;
 }
 
-int crop_to_screen_height(int pix_coord, Window* win) {
-  int res = std::min((std::max(pix_coord, 0)), win->_height - 1);
+int crop_to_window_height(int pix_coord, int window_height) {
+  int res = std::clamp(pix_coord, 0, window_height - 1);
   return res;
 }
 
-int crop_to_screen_width(int pix_coord, Window* win) {
-  int res = std::min((std::max(pix_coord, 0)), win->_width - 1);
+int crop_to_window_width(int pix_coord, int window_width) {
+  int res = std::clamp(pix_coord, 0, window_width - 1);
   return res;
 }
 

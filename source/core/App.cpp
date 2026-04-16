@@ -1,8 +1,9 @@
 #include "App.h"
 #include "helpers/sdl_hlprs.h"
 #include <thread>
-#include "core/window.h"
+#include "core/Window.h"
 #include "objects/base_objects/Object.h"
+#include "core/Scene.h"
 #include "smns/defs.h"
 #include <random>
 
@@ -165,42 +166,24 @@ void App::_callback_tick() {
 
       case SDL_EVENT_MOUSE_BUTTON_DOWN:
         // play_audio("LEGALIZENUCLEAR.wav");
-        if (_event.button.button == 1 /*SDL_BUTTON_RMASK*/) {
-					auto win = _windows.at(_event.window.windowID);
-            auto m_heart = new heart<HEART_TYPES::PARABOLA>(win, 0.05, 0.06, 3.9, 25, 1, 1);
-          m_heart->pos.x = map_to_screen_relative_width(
-              static_cast<int>(_event.button.x), win);
-          m_heart->pos.y = map_to_screen_relative_height_flip(
-              static_cast<int>(_event.button.y), win);
-						m_heart->mass = 0.1_r;
-						m_heart->force.y = m_heart->mass * -9.8_r;
-						std::random_device rd;
-						std::mt19937 RNG(rd());
-						std::uniform_real_distribution<> distr_x(-1.0, 1.0);
-						std::uniform_real_distribution<> distr_y(0, 1.0);
-						m_heart->vel.x = distr_x(RNG);
-						m_heart->vel.y = distr_y(RNG);
-						scene.add_object(m_heart);
-						scene.world.add_render_object(m_heart);
+				{
+          auto* win = _windows.at(_event.window.windowID);
+          scene.get<heart<HEART_TYPES::PARABOLA>*>().back()->pos.x = map_to_window_relative_width(
+              static_cast<int>(_event.button.x), win->_width);
+          scene.get<heart<HEART_TYPES::PARABOLA>*>().back()->pos.y = map_to_window_relative_height_flip(
+              static_cast<int>(_event.button.y), win->_height);
         }
-				//{
-    //      auto* win = _windows.at(_event.window.windowID);
-    //      scene.objects[0]->pos.x = map_to_screen_relative_width(
-    //          static_cast<int>(_event.button.x), win);
-    //      scene.objects[0]->pos.y = map_to_screen_relative_height_flip(
-    //          static_cast<int>(_event.button.y), win);
-    //    }
 				break;
 				
       case SDL_EVENT_MOUSE_MOTION:
         if (_event.motion.state & SDL_BUTTON_LMASK) {
-     //     auto* win = _windows.at(_event.window.windowID);
-     //     scene.get<heart<HEART_TYPES::PARABOLA>*>().back()->pos.x = map_to_screen_relative_width(
-     //         static_cast<int>(_event.button.x), win);
-     //     scene.get<heart<HEART_TYPES::PARABOLA>*>().back()->pos.y = map_to_screen_relative_height_flip(
-     //         static_cast<int>(_event.button.y), win);
-					//scene.get<heart<HEART_TYPES::PARABOLA>*>().back()->vel = 0;
-					//scene.get<heart<HEART_TYPES::PARABOLA>*>().back()->force = 0;
+          auto* win = _windows.at(_event.window.windowID);
+          scene.get<heart<HEART_TYPES::PARABOLA>*>().back()->pos.x = map_to_window_relative_width(
+              static_cast<int>(_event.button.x), win->_width);
+          scene.get<heart<HEART_TYPES::PARABOLA>*>().back()->pos.y = map_to_window_relative_height_flip(
+              static_cast<int>(_event.button.y), win->_height);
+					scene.get<heart<HEART_TYPES::PARABOLA>*>().back()->vel = 0;
+					scene.get<heart<HEART_TYPES::PARABOLA>*>().back()->force = 0;
         }
 
         //if (_event.motion.state & SDL_BUTTON_RMASK) {

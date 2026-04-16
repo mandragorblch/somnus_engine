@@ -19,16 +19,16 @@ namespace smns::sdl_hlprs {
   //returns coords in pixels
 template<typename num_t = ::smns::defs::real>
   requires(std::is_arithmetic_v<num_t>)
-int map_to_screen_width(num_t rel_coord, Window* win) {
-  int res = static_cast<int>(std::floor((win->_width - 1) * rel_coord));
+int map_to_window_width(num_t coord, int window_width) {
+  int res = static_cast<int>(std::floor((window_width - 1) * coord));
   return res;
 }
 
  //returns coords in pixels
 template<typename num_t = ::smns::defs::real>
   requires(std::is_arithmetic_v<num_t>)
-int map_to_screen_height(num_t rel_coord, Window* win) {
-  int res = static_cast<int>(std::floor((win->_height - 1) * rel_coord));
+int map_to_window_height(num_t coord, int window_height) {
+  int res = static_cast<int>(std::floor((window_height - 1) * coord));
   return res;
 }
 
@@ -42,56 +42,56 @@ template<typename num_t = ::smns::defs::real>
 
 //flip the coord
  //returns coords in pixels
-int flip_y(int pix_coord, Window* win);
+int flip_y(int pix_coord, int window_height);
 
 //flip the coord
  //returns coords in pixels
-int flip_x(int pix_coord, Window* win);
+int flip_x(int pix_coord, int window_width);
 
  //returns coords in pixels
 template<typename num_t = ::smns::defs::real>
   requires(std::is_arithmetic_v<num_t>)
-int map_to_screen_height_flip(num_t rel_coord, Window* win) {
-  int res = static_cast<int>((win->_height - 1) * (1_r - rel_coord));
+int map_to_window_height_flip(num_t rel_coord, int window_height) {
+  int res = static_cast<int>((window_height - 1) * (1_r - rel_coord));
   return res;
 }
 
   //returns coords in pixels with y flipped (it renders upside down)
 template<typename num_t = ::smns::defs::real>
   requires(std::is_arithmetic_v<num_t>)
-vec2<int> map_to_screen(const vec2<num_t>& rel_coords, Window* win) {
-  vec2<int> res = {map_to_screen_width(rel_coords.x, win), map_to_screen_height_flip(rel_coords.y, win)};
+vec2<int> map_to_window(const vec2<num_t>& rel_coords, int window_width, int window_height) {
+  vec2<int> res = {map_to_window_width(rel_coords.x, window_width), map_to_window_height(rel_coords.y, window_height)};
   return res;
 }
 
  //returns coords in pixels
 template<typename num_t = ::smns::defs::real>
   requires(std::is_arithmetic_v<num_t>)
-vec2<int> map_to_screen_size(const vec2<num_t>& rel_coords, Window* win) {
-  vec2<int> res = {map_to_screen_width(rel_coords.x, win), map_to_screen_height_flip(rel_coords.y, win)};
+vec2<int> map_to_window_size(const vec2<num_t>& rel_coords, int window_width, int window_height) {
+  vec2<int> res = {map_to_window_width(rel_coords.x, window_width), map_to_window_height(rel_coords.y, window_height)};
   return res;
 }
 
  //returns coord
-::smns::defs::real map_to_screen_relative_height_flip(int pix_coord, Window* win);
+::smns::defs::real map_to_window_relative_height_flip(int pix_coord, int window_height);
 
  //returns coord
-::smns::defs::real map_to_screen_relative_height(int pix_coord, Window* win);
+::smns::defs::real map_to_window_relative_height(int pix_coord, int window_height);
 
   //returns coords
-::smns::defs::real map_to_screen_relative_width(int pix_coord, Window* win);
+::smns::defs::real map_to_window_relative_width(int pix_coord, int window_width);
 
 //crop to [0, height] in pixels
-int crop_to_screen_height(int pix_coord, Window* win);
+int crop_to_window_height(int pix_coord, int window_width);
 
 //crop to [0, width] in pixels
-int crop_to_screen_width(int pix_coord, Window* win);
+int crop_to_window_width(int pix_coord, int window_width);
 
 //crop to [0.0, 1.0]
 template<typename num_t = ::smns::defs::real>
   requires(std::is_arithmetic_v<num_t>)
 num_t crop(num_t pix_coord) {
-  num_t res = std::min((std::max(pix_coord, 0_r)), 1.0_r);
+  num_t res = std::clamp(pix_coord, 0_r, 1_r);
   return res;
 }
 

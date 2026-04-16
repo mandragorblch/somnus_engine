@@ -2,11 +2,14 @@
 #include "World.h"
 #include "objects/heart.h"
 
+class Window;
+
+namespace smns::core {
 using RenderTypes =
     type_list<heart<HEART_TYPES::PARABOLA>*, heart<HEART_TYPES::CIRCLE_ASIN>*>;
 
 class Scene {
-	using real = smns::defs::real;
+	using real = defs::real;
 	 public:
   World<RenderTypes> world;
 
@@ -19,3 +22,4 @@ class Scene {
     return world.get<render_t>();
   }
 };
+}

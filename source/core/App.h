@@ -11,7 +11,7 @@
 #include "core/audio.h"
 #include "smns/types/average.hpp"
 #include "../objects/base_objects/Renderer.h"
-#include "Scene.h"
+#include "../core/Scene.h"
 
 class Window;
 class Object;
@@ -30,7 +30,7 @@ class App {
   std::string _audio_files_path;
   real _master_volume{};
 
-	Scene scene;
+	smns::core::Scene scene;
 
   real _trgt_FPS{};
   std::chrono::microseconds _trgt_frame_time{};
