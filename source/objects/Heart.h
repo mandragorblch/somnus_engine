@@ -34,7 +34,11 @@ class heart<HEART_TYPES::PARABOLA> : public Renderable<RENDER_TYPE::ANALYTICAL, 
   real phase{};
   real cos_phi = std::cos(phi);
   real sin_phi = std::sin(phi);
-  std::vector<real> SDF_map;
+	//first non-zero entry in row of SDF_map
+  std::vector<size_t> SDF_first{};
+	//last non-zero entry in row of SDF_map
+	std::vector<size_t> SDF_last{};
+	std::vector<std::vector<real>> SDF_map{}; 
   
 
   real func(real x, real y);
